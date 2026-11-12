@@ -138,3 +138,60 @@ __nimbus.camera    // 当前相机
 - 仅支持键鼠；触屏设备会看到“需要键盘与鼠标”的提示。
 - 指针锁定需要用户手势；浏览器拒绝时点击画面可重试。
 - 低端集显建议降低窗口尺寸（渲染分辨率随 `devicePixelRatio` 自适应）。
+
+## 项目提示词（Handoff）
+
+下面这段可直接粘贴给新的 AI 会话，用于接手、继续开发或重建本项目。完整交接文档保存在系统临时目录 `%TEMP%\opencode\nimbus-salvagers-handoff.md`。
+
+```text
+你接手一个已经可通关的第一人称科幻射击游戏《Nimbus Salvagers · 云海拾荒者》。
+
+【仓库与环境】
+- 仓库：E:\my\AI\3D-make-demo，分支 master。
+- 游戏目录：Nimbus Salvagers 3D 游戏/（独立 Vite 子项目）。
+- 运行：cd "Nimbus Salvagers 3D 游戏"; pnpm install; pnpm dev（http://127.0.0.1:5174）；pnpm build。
+- 技术栈：Vite 8 + Three.js r187 + Tailwind CSS v4；无外部模型 / 贴图 / 音频，全部程序化生成。
+
+【当前完成度】
+- 三章节：拾荒者码头出发 → 跳过两座踏脚石 → 圆形竞技场抵御三波守卫 → 按住 E 修复涡轮机 → 胜利结算。
+- 第一人称 AR-9：30 发弹匣、9.5 发/秒、R 换弹、右键 ADS（FOV 70→52）、Q 过载脉冲、Shift 冲刺、空格跳跃。
+- 换弹动画 1.35 s：枪身倾斜、弹匣掉落（世界空间物理）、左手换匣、拉机柄复位；第一人称武器在独立场景 + 58° 相机渲染。
+- 12 枚固定线圈代币 + 击坠掉落 + 每波 +2；累计 8/16/24/32 解锁四档改装。
+- 敌人：巡弋守卫（环绕 + 预测射击）、风帆枪手（三连发）、风帆守卫长（环形弹幕）。
+- 标题 / HUD / 暂停 / 阵亡 / 胜利界面、程序化 WebAudio 音效、Bloom 后期。
+- 已验证：三波流程、修复、胜利、阵亡重试、暂停、ADS、换弹、生产构建 0 报错。
+
+【代码地图】
+- src/main.js：状态机（title/play/paused/dead/victory）、输入、战斗事件、章节流程、渲染循环与后期。
+- src/config.js：平台、波次、改装档位、玩家/敌人数值（优先改这里做平衡）。
+- src/world.js：天空、云海、岛屿、涡轮机、代币、风帆、远景。
+- src/player.js：第一人称控制器、物理、视图模型、换弹时间轴、相机。
+- src/enemies.js：守卫模型、AI、投射物、血条。
+- src/fx.js：粒子池、曳光、冲击环、枪口闪光。
+- src/audio.js：WebAudio 合成音效与环境声。
+- src/ui.js：HUD 与全屏界面状态。
+- src/style.css：Tailwind + 自定义界面样式。
+
+【必须遵守】
+- 全部界面中文；首次出现的英文术语附中文解释。
+- 不引入外部素材；新增视觉 / 音效必须程序化生成。
+- 保持数据驱动：波次、改装、平台配置放 src/config.js。
+- 保持第一人称武器独立场景渲染，不要塞回世界场景。
+- 提交信息使用中文，格式 <type>: <描述>。
+- 修改后运行 pnpm build，并在浏览器验证控制台 0 错误。
+
+【下一步可做】
+- 合作模式：敌人目标已解耦到 player 引用，复制玩家与 HUD 即可。
+- 风之试炼：WAVES 数据表可循环，UPGRADE_TIERS 可追加无尽档位。
+- 视觉：第一人称手臂 / 枪身比例与亮度、HUD 可读性、云海层次。
+- 性能：world.js 静态几何合批、云团数量自适应。
+- 平衡：敌人伤害 / 弹速 / 掉落、三波难度曲线。
+- 测试：为波次、改装、换弹状态机补自动化测试。
+
+【参考】
+- 详细说明与复现提示词：docs/projects/nimbus-salvagers.md
+- 最近提交：5bdefd6 feat: Nimbus Salvagers 第一人称科幻射击游戏
+```
+
+建议技能：`/grilling`、`/tdd`、`/code-review`、`/playwright`、`/frontend-design`、`/handoff`。
+

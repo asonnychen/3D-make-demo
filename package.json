@@ -1,0 +1,25 @@
+{
+  "name": "3d-make-demo",
+  "private": true,
+  "version": "1.1.0",
+  "type": "module",
+  "description": "程序化 3D 作品集：一目录一项目，依赖统一由根 package.json 管理",
+  "scripts": {
+    "dev": "cd 科隆大教堂建筑 && vite",
+    "build": "cd 科隆大教堂建筑 && vite build",
+    "bundle": "cd 科隆大教堂建筑 && vite build && node scripts/bundle-html.mjs",
+    "serve": "cd 科隆大教堂建筑 && node scripts/serve-static.mjs",
+    "dev:cathedral": "cd 科隆大教堂建筑 && vite",
+    "build:cathedral": "cd 科隆大教堂建筑 && vite build",
+    "dev:game": "cd \"Nimbus Salvagers 3D 游戏\" && vite",
+    "build:game": "cd \"Nimbus Salvagers 3D 游戏\" && vite build"
+  },
+  "dependencies": {
+    "three": "^0.187.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.5",
+    "tailwindcss": "^4.3.5",
+    "vite": "^8.3.7"
+  }
+}

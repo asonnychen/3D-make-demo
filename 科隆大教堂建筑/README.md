@@ -4,11 +4,12 @@
 
 ## 运行
 
+依赖由仓库根目录统一管理，在根目录执行：
+
 ```powershell
-cd 科隆大教堂建筑
 pnpm install
 pnpm dev      # http://127.0.0.1:5173
-pnpm build    # 产出 dist/
+pnpm build    # 产出 科隆大教堂建筑/dist/
 pnpm bundle   # 构建并生成 kolner-dom.html 单文件版
 pnpm serve    # 本地静态预览单文件版（5180）
 ```
@@ -29,7 +30,6 @@ pnpm serve    # 本地静态预览单文件版（5180）
 科隆大教堂建筑/
 ├─ index.html
 ├─ kolner-dom.html      单文件版本（构建产物）
-├─ package.json
 ├─ vite.config.js
 ├─ scripts/
 │  ├─ bundle-html.mjs   内联打包

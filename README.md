@@ -12,21 +12,17 @@
 
 ## 快速开始
 
-根目录只是项目容器。每个子目录都是独立项目，各自安装依赖、各自启动、互不干扰；新增项目请遵循 [`AGENTS.md`](AGENTS.md) 的「项目目录规则」。
+根目录是容器与共享依赖层：所有项目共用根 `package.json` 的依赖（以 Three.js 为主），一次安装即可；每个子目录仍是独立项目，各自启动、互不干扰。新增项目请遵循 [`AGENTS.md`](AGENTS.md) 的「项目目录规则」。
 
 ```powershell
-# 项目 01 · 科隆大教堂
-cd 科隆大教堂建筑
-pnpm install
-pnpm dev      # http://127.0.0.1:5173
-pnpm build    # 产出 dist/
-pnpm bundle   # 构建并生成 kolner-dom.html 单文件版
+pnpm install          # 仓库根目录，安装所有项目共用的依赖
 
-# 项目 02 · Nimbus Salvagers
-cd "Nimbus Salvagers 3D 游戏"
-pnpm install
-pnpm dev      # http://127.0.0.1:5174
-pnpm build    # 产出 dist/
+pnpm dev              # 项目 01 · 科隆大教堂  http://127.0.0.1:5173
+pnpm build            # 构建科隆大教堂 → 科隆大教堂建筑/dist/
+pnpm bundle           # 生成单文件版 → 科隆大教堂建筑/kolner-dom.html
+
+pnpm dev:game         # 项目 02 · Nimbus Salvagers  http://127.0.0.1:5174
+pnpm build:game       # 构建游戏 → Nimbus Salvagers 3D 游戏/dist/
 ```
 
 单文件版本把 Three.js、样式和全部程序内联进一个 HTML（约 640 KB），双击即可打开，不需要服务器、不依赖网络。
@@ -40,6 +36,8 @@ pnpm build    # 产出 dist/
 ├─ README.md               作品索引
 ├─ AGENTS.md               项目目录规则与协作约定
 ├─ .gitignore
+├─ package.json            共享依赖与各项目脚本
+├─ pnpm-lock.yaml          统一锁文件
 ├─ docs/
 │  ├─ images/              作品预览图
 │  ├─ projects/            每个作品的详细说明与 AI 提示词
@@ -47,8 +45,6 @@ pnpm build    # 产出 dist/
 ├─ 科隆大教堂建筑/          项目 01 · 端口 5173
 │  ├─ README.md
 │  ├─ index.html
-│  ├─ package.json         独立依赖与脚本
-│  ├─ pnpm-lock.yaml
 │  ├─ vite.config.js
 │  ├─ kolner-dom.html      单文件版本（构建产物）
 │  ├─ scripts/
@@ -56,8 +52,6 @@ pnpm build    # 产出 dist/
 └─ Nimbus Salvagers 3D 游戏/  项目 02 · 端口 5174
    ├─ README.md
    ├─ index.html
-   ├─ package.json
-   ├─ pnpm-lock.yaml
    ├─ vite.config.js
    └─ src/
 ```

@@ -8,12 +8,12 @@
 
 ## 运行
 
+依赖由仓库根目录统一管理，在根目录执行：
+
 ```powershell
-cd "Nimbus Salvagers 3D 游戏"
 pnpm install
-pnpm dev      # http://127.0.0.1:5174
-pnpm build    # 产出 dist/
-pnpm preview  # 预览构建结果
+pnpm dev:game      # http://127.0.0.1:5174
+pnpm build:game    # 产出 Nimbus Salvagers 3D 游戏/dist/
 ```
 
 技术栈：Vite 8 + Three.js r187 + Tailwind CSS v4。
@@ -149,7 +149,7 @@ __nimbus.camera    // 当前相机
 【仓库与环境】
 - 仓库：E:\my\AI\3D-make-demo，分支 master。
 - 游戏目录：Nimbus Salvagers 3D 游戏/（独立 Vite 子项目）。
-- 运行：cd "Nimbus Salvagers 3D 游戏"; pnpm install; pnpm dev（http://127.0.0.1:5174）；pnpm build。
+- 运行：在仓库根目录 pnpm install；pnpm dev:game（http://127.0.0.1:5174）；pnpm build:game。
 - 技术栈：Vite 8 + Three.js r187 + Tailwind CSS v4；无外部模型 / 贴图 / 音频，全部程序化生成。
 
 【当前完成度】
@@ -178,7 +178,7 @@ __nimbus.camera    // 当前相机
 - 保持数据驱动：波次、改装、平台配置放 src/config.js。
 - 保持第一人称武器独立场景渲染，不要塞回世界场景。
 - 提交信息使用中文，格式 <type>: <描述>。
-- 修改后运行 pnpm build，并在浏览器验证控制台 0 错误。
+- 修改后运行 pnpm build:game，并在浏览器验证控制台 0 错误。
 
 【下一步可做】
 - 合作模式：敌人目标已解耦到 player 引用，复制玩家与 HUD 即可。

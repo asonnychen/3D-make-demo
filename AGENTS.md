@@ -7,6 +7,8 @@
 | `科隆大教堂建筑/` | 科隆大教堂 · Kölner Dom | Vite + Three.js + Tailwind CSS v4 | 5173 |
 | `Nimbus Salvagers 3D 游戏/` | Nimbus Salvagers · 云海拾荒者 | Vite + Three.js + Tailwind CSS v4 | 5174 |
 
+> **铁律：先建文件夹，再开发。** 新增任何项目，第一步都必须先在仓库根目录创建新的项目文件夹，之后所有代码、依赖、构建配置与文档都放在该文件夹内。禁止在根目录直接写项目代码，禁止把新项目塞进已有项目的目录，禁止多个项目共用一个目录。
+
 ## 项目目录规则
 
 ### 1. 一目录一项目
@@ -66,10 +68,10 @@
 
 ### 6. 新增项目清单
 
-1. 在根目录创建项目文件夹。
-2. 放入 `index.html`、`package.json`、`vite.config.js`、`src/`、`README.md`。
-3. `cd <项目> && pnpm install`，提交 `pnpm-lock.yaml`。
-4. `pnpm dev` 自测，`pnpm build` 确认产出。
+1. **先在仓库根目录创建新的项目文件夹**（这一步必须先做，确认目录建好后再写任何代码）。
+2. 在新文件夹内放入 `index.html`、`package.json`、`vite.config.js`、`src/`、`README.md`。
+3. `cd <新文件夹> && pnpm install`，提交 `pnpm-lock.yaml`。
+4. 在新文件夹内 `pnpm dev` 自测，`pnpm build` 确认产出。
 5. 更新根 `README.md`、`docs/projects/`、`docs/images/` 与本文表格。
 6. 提交信息使用中文，格式 `<type>: <描述>`。
 

@@ -179,6 +179,7 @@ __nimbus.camera    // 当前相机
 - 保持第一人称武器独立场景渲染，不要塞回世界场景。
 - 提交信息使用中文，格式 <type>: <描述>。
 - 修改后运行 pnpm build:game，并在浏览器验证控制台 0 错误。
+- 发布前用 handoff skill 刷新本提示词并补充到 README，然后构建、提交 dist、推送 origin/master。
 
 【下一步可做】
 - 合作模式：敌人目标已解耦到 player 引用，复制玩家与 HUD 即可。

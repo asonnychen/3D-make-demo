@@ -1,6 +1,6 @@
 # 3D-make-demo
 
-科隆大教堂 Three.js 程序化建筑模型（`科隆大教堂建筑/`，Vite + Three.js + Tailwind CSS v4）。
+科隆大教堂 Three.js 程序化建筑模型（`科隆大教堂建筑/`）与《Nimbus Salvagers · 云海拾荒者》第一人称科幻动作射击游戏（`Nimbus Salvagers 3D 游戏/`）。两者均为 Vite + Three.js + Tailwind CSS v4，几何、贴图与音效全部程序化生成。
 
 ## Agent skills
 

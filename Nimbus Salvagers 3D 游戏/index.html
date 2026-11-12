@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Nimbus Salvagers · 云海拾荒者</title>
+    <meta name="description" content="穿越漂浮遗迹的科幻远征：在 Cirrus Reach 涡轮机站点抵御三波守卫，修复涡轮机，收集线圈代币。Three.js 程序化生成的第一人称动作射击游戏。" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%235eead4' stroke-width='2'/%3E%3Cpath d='M6 20c5-8 15-8 20 0' fill='none' stroke='%235eead4' stroke-width='2'/%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="scene"></canvas>
+
+      <div class="screen-fx" id="vignette"></div>
+      <div class="screen-fx" id="damage-flash"></div>
+      <div class="screen-fx" id="fade"></div>
+
+      <!-- ============================== 游戏 HUD ============================== -->
+      <div id="hud" class="hud is-hidden">
+        <div class="hud-corner tl">
+          <div class="id-tag"><span class="dot"></span>ENGINEER <b>VELA-07</b></div>
+          <div class="bar hp">
+            <i id="hp-fill"></i>
+            <span id="hp-text">100 / 100</span>
+          </div>
+          <div class="bar thin energy"><i id="dash-fill"></i></div>
+        </div>
+
+        <div class="objective">
+          <span class="obj-kicker">当前目标</span>
+          <span class="obj-text" id="obj-text">抵达 Cirrus Reach 涡轮机</span>
+          <span class="obj-dist" id="obj-dist">— m</span>
+        </div>
+
+        <div class="hud-corner tr">
+          <div class="token-card">
+            <span class="coil-icon"></span>
+            <b id="token-count">0</b>
+            <small>线圈代币</small>
+          </div>
+          <div class="wave-line" id="wave-line">第 1 章 · 启程</div>
+        </div>
+
+        <div id="crosshair" class="crosshair"><i></i><i></i><i></i><i></i><b></b></div>
+        <div id="hitmarker" class="hitmarker"></div>
+        <div id="waypoint" class="waypoint"><span class="wp-diamond"></span><span id="waypoint-dist">0 m</span></div>
+
+        <div class="hud-corner bl">
+          <div class="weapon-card">
+            <div class="weapon-name">AR-9 <small>自动步枪</small></div>
+            <div class="ammo"><b id="ammo-now">30</b><span>/</span><i id="ammo-max">30</i></div>
+            <div class="reload"><i id="reload-fill"></i></div>
+          </div>
+          <div class="skill-row">
+            <div class="skill" id="skill-pulse">
+              <span class="key">Q</span>
+              <span class="ring" id="skill-ring"><b></b></span>
+              <span class="skill-name">过载脉冲</span>
+            </div>
+            <div class="skill" id="skill-dash">
+              <span class="key">SHIFT</span>
+              <span class="ring" id="dash-ring"><b></b></span>
+              <span class="skill-name">冲刺</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hud-corner br">
+          <div class="chapter-tag" id="chapter-tag">CHAPTER I</div>
+          <div class="chapter-name" id="chapter-name">云海之上</div>
+          <div class="wave-dots" id="wave-dots"></div>
+        </div>
+
+        <div id="dialogue" class="dialogue">
+          <span class="who" id="dlg-who">VELA</span>
+          <p id="dlg-text"></p>
+        </div>
+
+        <div id="banner" class="banner">
+          <span class="banner-kicker" id="banner-kicker">CHAPTER I</span>
+          <b id="banner-title">云海之上</b>
+          <span class="banner-sub" id="banner-sub">追踪失落的信号</span>
+        </div>
+
+        <div id="prompt" class="prompt">
+          <div class="prompt-head"><span class="key">E</span><b id="prompt-text">按住修复涡轮机</b></div>
+          <div class="progress"><i id="prompt-fill"></i></div>
+        </div>
+
+        <div id="toast-wrap" class="toast-wrap"></div>
+        <div id="lowhp" class="lowhp"></div>
+      </div>
+
+      <!-- ============================== 标题界面 ============================== -->
+      <div id="screen-title" class="screen title-screen">
+        <div class="title-top">
+          <div class="brand">
+            <span class="brand-mark"></span>
+            <span class="brand-name">NIMBUS SALVAGERS</span>
+            <span class="brand-sub">云海拾荒者</span>
+          </div>
+          <div class="title-meta">
+            <span>THREE.JS · 程序化生成</span>
+            <span>远征 01</span>
+          </div>
+        </div>
+
+        <div class="title-body">
+          <div class="title-main">
+            <p class="eyebrow">A SCI-FI EXPEDITION ABOVE THE CLOUDS</p>
+            <h1>NIMBUS<br /><em>SALVAGERS</em></h1>
+            <p class="lede">
+              信号从 Cirrus Reach 的废弃涡轮机站点传来。带上自动步枪，跳过漂浮遗迹，
+              在三波风之守卫的拦截中活下去 —— 然后让涡轮机重新转动。
+            </p>
+
+            <div class="chapter-list">
+              <div class="chapter-item active">
+                <span class="num">I</span>
+                <div><b>云海之上</b><small>抵达涡轮机站点</small></div>
+                <span class="state">起点</span>
+              </div>
+              <div class="chapter-item">
+                <span class="num">II</span>
+                <div><b>失落的信号</b><small>抵御三波守卫</small></div>
+                <span class="state">战斗</span>
+              </div>
+              <div class="chapter-item">
+                <span class="num">III</span>
+                <div><b>风之核心</b><small>修复涡轮机</small></div>
+                <span class="state">终局</span>
+              </div>
+            </div>
+
+            <div class="title-actions">
+              <button id="btn-start" class="btn primary" type="button">
+                <span>开始远征</span>
+                <kbd>ENTER</kbd>
+              </button>
+              <button id="btn-sound" class="btn ghost" type="button">声音：开</button>
+            </div>
+            <p class="hint">需要键盘与鼠标 · 点击开始后将锁定指针</p>
+          </div>
+
+          <aside class="title-side">
+            <div class="mode-card available">
+              <span class="mode-kicker">模式 01</span>
+              <b>远征模式</b>
+              <small>单人剧情 · 三章节 · 可重玩</small>
+              <span class="mode-state">可用</span>
+            </div>
+            <div class="mode-card locked">
+              <span class="mode-kicker">模式 02</span>
+              <b>合作模式</b>
+              <small>双人风帆护航 · 预留接口</small>
+              <span class="mode-state">待解锁</span>
+            </div>
+            <div class="mode-card locked">
+              <span class="mode-kicker">模式 03</span>
+              <b>风之试炼</b>
+              <small>无尽波次 · 排行榜 · 预留接口</small>
+              <span class="mode-state">待解锁</span>
+            </div>
+
+            <div class="controls-card">
+              <span class="panel-title">操作</span>
+              <dl>
+                <div><dt>移动</dt><dd>W A S D</dd></div>
+                <div><dt>跳跃</dt><dd>SPACE</dd></div>
+                <div><dt>冲刺</dt><dd>SHIFT</dd></div>
+                <div><dt>射击</dt><dd>鼠标左键</dd></div>
+                <div><dt>瞄准</dt><dd>鼠标右键</dd></div>
+                <div><dt>换弹</dt><dd>R</dd></div>
+                <div><dt>武器技能</dt><dd>Q</dd></div>
+                <div><dt>暂停</dt><dd>ESC</dd></div>
+              </dl>
+            </div>
+          </aside>
+        </div>
+
+        <div class="title-foot">
+          <span>原创云层 · 帆状机械 · 蓝绿色能量</span>
+          <span>无外部贴图 / 无外部模型 / 全部实时生成</span>
+        </div>
+      </div>
+
+      <!-- ============================== 暂停 ============================== -->
+      <div id="screen-pause" class="screen modal-screen is-hidden">
+        <div class="modal">
+          <span class="modal-kicker">PAUSED</span>
+          <h2>远征暂停</h2>
+          <p class="modal-lede">风还在吹，守卫也在等你。</p>
+          <div class="modal-stats">
+            <div><span>章节</span><b id="pause-chapter">I · 云海之上</b></div>
+            <div><span>波次</span><b id="pause-wave">—</b></div>
+            <div><span>线圈代币</span><b id="pause-tokens">0</b></div>
+            <div><span>击坠</span><b id="pause-kills">0</b></div>
+          </div>
+          <div class="modal-actions">
+            <button id="btn-resume" class="btn primary" type="button">继续远征</button>
+            <button id="btn-pause-sound" class="btn ghost" type="button">声音：开</button>
+            <button id="btn-quit" class="btn ghost" type="button">返回标题</button>
+          </div>
+          <p class="hint">再次按 ESC 也可继续</p>
+        </div>
+      </div>
+
+      <!-- ============================== 阵亡 ============================== -->
+      <div id="screen-dead" class="screen modal-screen is-hidden">
+        <div class="modal danger">
+          <span class="modal-kicker">SIGNAL LOST</span>
+          <h2>信号中断</h2>
+          <p class="modal-lede">风把残余的意识吹回了码头。涡轮机还在等你。</p>
+          <div class="modal-stats">
+            <div><span>坚持波次</span><b id="dead-wave">—</b></div>
+            <div><span>击坠</span><b id="dead-kills">0</b></div>
+            <div><span>线圈代币</span><b id="dead-tokens">0</b></div>
+          </div>
+          <div class="modal-actions">
+            <button id="btn-retry" class="btn primary" type="button">重新进入战场</button>
+            <button id="btn-dead-quit" class="btn ghost" type="button">返回标题</button>
+          </div>
+          <p class="hint">保留已收集的线圈代币与改装</p>
+        </div>
+      </div>
+
+      <!-- ============================== 胜利 ============================== -->
+      <div id="screen-victory" class="screen modal-screen is-hidden">
+        <div class="modal victory">
+          <span class="modal-kicker">TURBINE ONLINE</span>
+          <h2>风之核心重启</h2>
+          <p class="modal-lede">
+            Cirrus Reach 重新亮起。失落的信号顺着云海扩散出去 —— 更远处的遗迹，听见了你的回答。
+          </p>
+          <div class="modal-stats">
+            <div><span>用时</span><b id="win-time">—</b></div>
+            <div><span>击坠</span><b id="win-kills">0</b></div>
+            <div><span>线圈代币</span><b id="win-tokens">0</b></div>
+            <div><span>改装</span><b id="win-upgrades">0 / 4</b></div>
+          </div>
+          <div class="modal-actions">
+            <button id="btn-again" class="btn primary" type="button">再次远征</button>
+            <button id="btn-victory-quit" class="btn ghost" type="button">返回标题</button>
+          </div>
+          <div class="next-modes">
+            <div><span>即将开放</span><b>合作模式</b></div>
+            <div><span>即将开放</span><b>风之试炼</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

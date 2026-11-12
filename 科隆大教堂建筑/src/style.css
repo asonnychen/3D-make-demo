@@ -1,0 +1,311 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: Georgia, "Times New Roman", "Songti SC", serif;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+
+:root {
+  --ui-fg: #ffffff;
+  --ui-strong: rgba(255, 255, 255, 0.92);
+  --ui-muted: rgba(255, 255, 255, 0.7);
+  --ui-soft: rgba(255, 255, 255, 0.55);
+  --pill-bg: rgba(0, 0, 0, 0.2);
+  --pill-ring: rgba(255, 255, 255, 0.15);
+  --btn-active-bg: rgba(255, 255, 255, 0.92);
+  --btn-active-fg: #1d2024;
+  --anno-fg: #2b2823;
+  --anno-line: rgba(56, 51, 43, 0.55);
+  --anno-halo: rgba(247, 244, 236, 0.9);
+  --sky-1: #cfd5da;
+  --sky-2: #aeb5bc;
+  --sky-3: #8b9299;
+  --sky-4: #6e747b;
+  --range-rest: rgba(255, 255, 255, 0.24);
+}
+
+body.day {
+  --ui-fg: #2b2823;
+  --ui-strong: #2b2823;
+  --ui-muted: rgba(43, 40, 35, 0.72);
+  --ui-soft: rgba(43, 40, 35, 0.52);
+  --pill-bg: rgba(255, 255, 255, 0.55);
+  --pill-ring: rgba(43, 40, 35, 0.14);
+  --btn-active-bg: #2b2823;
+  --btn-active-fg: #f7f4ec;
+  --range-rest: rgba(43, 40, 35, 0.2);
+}
+
+body.design {
+  --ui-fg: #2b2823;
+  --ui-strong: #2b2823;
+  --ui-muted: rgba(43, 40, 35, 0.72);
+  --ui-soft: rgba(43, 40, 35, 0.52);
+  --pill-bg: rgba(255, 255, 255, 0.62);
+  --pill-ring: rgba(43, 40, 35, 0.12);
+  --btn-active-bg: #2b2823;
+  --btn-active-fg: #f7f4ec;
+  --range-rest: rgba(43, 40, 35, 0.2);
+}
+
+body {
+  overflow: hidden;
+  background: radial-gradient(120% 90% at 50% 12%,
+    var(--sky-1) 0%, var(--sky-2) 38%, var(--sky-3) 68%, var(--sky-4) 100%);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body.design {
+  background:
+    linear-gradient(rgba(43, 40, 35, 0.05) 1px, transparent 1px) 0 0 / 48px 48px,
+    linear-gradient(90deg, rgba(43, 40, 35, 0.05) 1px, transparent 1px) 0 0 / 48px 48px,
+    radial-gradient(120% 90% at 50% 8%, #fbf9f3 0%, #f2eee4 52%, #e5dfd2 100%);
+}
+
+#scene {
+  position: fixed;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+#vignette {
+  background: radial-gradient(115% 85% at 50% 44%, transparent 42%, rgba(18, 22, 27, 0.26) 100%);
+  transition: opacity 400ms ease;
+}
+body.design #vignette {
+  opacity: 0;
+}
+body.day #vignette {
+  opacity: 0.4;
+}
+body.day .ui-panel,
+body.design .ui-panel {
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(43, 40, 35, 0.1);
+}
+body.day .swatch {
+  border-color: rgba(43, 40, 35, 0.2);
+}
+body.day .swatch:hover {
+  border-color: rgba(43, 40, 35, 0.45);
+}
+
+/* 时间滑杆 */
+.time-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 16px;
+  background: transparent;
+  cursor: pointer;
+}
+.time-range::-webkit-slider-runnable-track {
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg,
+    var(--ui-fg) 0%,
+    var(--ui-fg) var(--fill, 50%),
+    var(--range-rest) var(--fill, 50%),
+    var(--range-rest) 100%);
+}
+.time-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  margin-top: -5px;
+  border-radius: 999px;
+  background: var(--ui-fg);
+  box-shadow: 0 0 0 2px var(--pill-bg);
+}
+.time-range::-moz-range-track {
+  height: 2px;
+  border-radius: 999px;
+  background: var(--range-rest);
+}
+.time-range::-moz-range-progress {
+  height: 2px;
+  border-radius: 999px;
+  background: var(--ui-fg);
+}
+.time-range::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border: none;
+  border-radius: 999px;
+  background: var(--ui-fg);
+}
+.time-range:focus-visible {
+  outline: 1px solid var(--ui-fg);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+@media (max-width: 767px) {
+  #timebar {
+    left: 16px;
+    right: 16px;
+    width: auto;
+    bottom: 168px;
+  }
+}
+
+.ui-fg {
+  color: var(--ui-fg);
+}
+.ui-strong {
+  color: var(--ui-strong);
+}
+.ui-muted {
+  color: var(--ui-muted);
+}
+.ui-soft {
+  color: var(--ui-soft);
+}
+
+.ui-pill {
+  background: var(--pill-bg);
+  box-shadow: inset 0 0 0 1px var(--pill-ring);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: background-color 300ms ease, box-shadow 300ms ease;
+}
+.ui-divider {
+  background: var(--pill-ring);
+}
+
+/* 建筑色彩面板 */
+.ui-panel {
+  background: rgba(16, 18, 21, 0.34);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(18px) saturate(1.05);
+  -webkit-backdrop-filter: blur(18px) saturate(1.05);
+}
+
+#palette {
+  display: none;
+}
+#palette.open {
+  display: block;
+}
+@media (min-width: 1024px) {
+  #palette {
+    display: block;
+  }
+}
+body.design #palette {
+  display: none;
+}
+
+.swatch {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  overflow: hidden;
+  transition: border-color 160ms ease;
+}
+.swatch:hover {
+  border-color: rgba(255, 255, 255, 0.55);
+}
+.swatch::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+.swatch::-webkit-color-swatch {
+  border: none;
+  border-radius: 5px;
+}
+.swatch::-moz-color-swatch {
+  border: none;
+  border-radius: 5px;
+}
+
+@media (max-width: 1023px) {
+  #palette {
+    left: 16px;
+    right: 16px;
+    top: auto;
+    bottom: 88px;
+    width: auto;
+    transform: none;
+  }
+  #palette-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 12px;
+  }
+  #palette-list li {
+    height: 36px;
+  }
+  .palette-hex {
+    display: none;
+  }
+}
+
+.view-btn {
+  border-radius: 9999px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  color: var(--ui-muted);
+  transition: background-color 160ms ease, color 160ms ease;
+  white-space: nowrap;
+}
+@media (min-width: 640px) {
+  .view-btn {
+    padding: 0.45rem 0.9rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+  }
+}
+.view-btn:hover {
+  color: var(--ui-fg);
+  background: rgba(127, 127, 127, 0.16);
+}
+.view-btn[aria-pressed="true"] {
+  background: var(--btn-active-bg);
+  color: var(--btn-active-fg);
+}
+
+/* 设计模式标注 */
+#annotations {
+  width: 100%;
+  height: 100%;
+}
+.anno-text {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  fill: var(--anno-fg);
+  paint-order: stroke;
+  stroke: var(--anno-halo);
+  stroke-width: 3.5px;
+  stroke-linejoin: round;
+  font-family: ui-sans-serif, system-ui, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+.anno-line {
+  stroke: var(--anno-line);
+  stroke-width: 1;
+  fill: none;
+}
+.anno-dot {
+  fill: var(--anno-fg);
+}
+
+#loader {
+  transition: opacity 500ms ease;
+}

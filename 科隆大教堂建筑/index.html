@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Kölner Dom · 科隆大教堂三维模型</title>
+    <meta name="description" content="基于 Three.js 程序化生成的科隆大教堂建筑模型，按真实比例还原双塔、飞扶壁与多边形后殿。" />
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="scene"></canvas>
+
+      <div id="vignette" class="pointer-events-none fixed inset-0"></div>
+      <svg id="annotations" class="pointer-events-none fixed inset-0 hidden"></svg>
+
+      <div class="pointer-events-none fixed inset-0 flex flex-col justify-between p-5 sm:p-8 md:p-10">
+        <header class="flex items-start justify-between gap-6">
+          <div>
+            <p class="text-[11px] tracking-[0.08em] ui-soft">Architectural model · 1:200</p>
+            <h1 class="mt-2 font-serif text-[2rem] leading-none tracking-[0.04em] ui-fg sm:text-5xl md:text-6xl">
+              KÖLNER DOM
+            </h1>
+            <p class="mt-3 text-[11px] tracking-[0.02em] ui-muted sm:text-xs">科隆大教堂 · 哥特式建筑三维模型</p>
+          </div>
+          <dl class="hidden shrink-0 space-y-1 text-right text-[11px] leading-relaxed ui-soft sm:block">
+            <div><dt class="inline">总高</dt> <dd class="inline ui-strong">157 m</dd></div>
+            <div><dt class="inline">中殿脊高</dt> <dd class="inline ui-strong">58 m</dd></div>
+            <div><dt class="inline">耳堂宽</dt> <dd class="inline ui-strong">78 m</dd></div>
+          </dl>
+        </header>
+
+        <footer class="flex flex-wrap items-end justify-between gap-4">
+          <div class="ui-pill pointer-events-auto flex max-w-full flex-wrap gap-1 rounded-2xl p-1 sm:rounded-full">
+            <button class="view-btn" data-view="hero" aria-pressed="true">西南 3/4</button>
+            <button class="view-btn" data-view="west" aria-pressed="false">西立面</button>
+            <button class="view-btn" data-view="east" aria-pressed="false">东端后殿</button>
+            <button class="view-btn" data-view="top" aria-pressed="false">俯视</button>
+            <span class="ui-divider mx-1 hidden w-px self-stretch sm:block"></span>
+            <button class="view-btn" data-mode="design" aria-pressed="false">设计模式</button>
+            <button class="view-btn lg:hidden" data-palette>色彩</button>
+            <button class="view-btn" data-rotate aria-pressed="false">自动旋转</button>
+          </div>
+          <p class="text-[11px] tracking-wide ui-soft">拖拽旋转 · 滚轮缩放 · 右键平移</p>
+        </footer>
+      </div>
+
+      <aside id="palette" class="fixed right-5 top-1/2 z-10 w-[248px] -translate-y-1/2 lg:right-10">
+        <div class="ui-panel rounded-2xl p-4">
+          <div class="flex items-baseline justify-between border-b border-[color:var(--pill-ring)] pb-2.5">
+            <h2 class="text-[12px] ui-muted">建筑色彩</h2>
+            <button id="palette-reset" class="text-[11px] ui-soft transition-colors hover:text-[color:var(--ui-fg)]">重置</button>
+          </div>
+          <ul id="palette-list" class="mt-3"></ul>
+          <p class="mt-2 text-[10.5px] leading-relaxed ui-soft">点击色块取色，实时应用到模型</p>
+        </div>
+      </aside>
+
+      <div id="timebar" class="fixed bottom-24 left-5 z-10 w-[300px] md:bottom-28 md:left-10">
+        <div class="ui-panel rounded-xl px-4 py-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 ui-fg">
+              <svg id="icon-sun" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                <circle cx="12" cy="12" r="4"></circle>
+                <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+              </svg>
+              <svg id="icon-moon" class="hidden h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
+                <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a7 7 0 1 0 10.5 10.5z"></path>
+              </svg>
+              <span id="time-label" class="font-mono text-[13px] tabular-nums">15:30</span>
+            </div>
+            <span id="time-phase" class="text-[11px] ui-soft">日间</span>
+          </div>
+          <input id="time-slider" class="time-range mt-2" type="range" min="0" max="24" step="0.05" value="15.5" aria-label="一天中的时间" />
+          <div class="mt-1 flex justify-between font-mono text-[9.5px] ui-soft">
+            <span>00</span><span>06</span><span>12</span><span>18</span><span>24</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="loader" class="fixed inset-0 z-10 flex items-center justify-center bg-[#8d949b]">
+        <div class="flex flex-col items-center gap-4">
+          <div class="h-8 w-8 animate-spin rounded-full border-2 border-white/25 border-t-white/90"></div>
+          <p class="text-[11px] tracking-[0.12em] text-white/70">Building model</p>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

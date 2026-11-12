@@ -19,11 +19,13 @@ pnpm install          # 仓库根目录，安装所有项目共用的依赖
 
 pnpm dev              # 项目 01 · 科隆大教堂  http://127.0.0.1:5173
 pnpm build            # 构建科隆大教堂 → 科隆大教堂建筑/dist/
-pnpm bundle           # 生成单文件版 → 科隆大教堂建筑/kolner-dom.html
+pnpm bundle           # 复用 dist 生成单文件版 → kolner-dom.html
 
 pnpm dev:game         # 项目 02 · Nimbus Salvagers  http://127.0.0.1:5174
 pnpm build:game       # 构建游戏 → Nimbus Salvagers 3D 游戏/dist/
 ```
+
+`dist/` 已提交到仓库，可直接用静态服务器部署；修改源码后重新构建并提交对应的 `dist/`。
 
 单文件版本把 Three.js、样式和全部程序内联进一个 HTML（约 640 KB），双击即可打开，不需要服务器、不依赖网络。
 

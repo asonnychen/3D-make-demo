@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "cd 科隆大教堂建筑 && vite",
     "build": "cd 科隆大教堂建筑 && vite build",
-    "bundle": "cd 科隆大教堂建筑 && vite build && node scripts/bundle-html.mjs",
+    "bundle": "cd 科隆大教堂建筑 && node scripts/bundle-html.mjs",
     "serve": "cd 科隆大教堂建筑 && node scripts/serve-static.mjs",
     "dev:cathedral": "cd 科隆大教堂建筑 && vite",
     "build:cathedral": "cd 科隆大教堂建筑 && vite build",

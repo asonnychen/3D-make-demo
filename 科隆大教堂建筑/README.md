@@ -10,7 +10,7 @@
 pnpm install
 pnpm dev      # http://127.0.0.1:5173
 pnpm build    # 产出 科隆大教堂建筑/dist/
-pnpm bundle   # 构建并生成 kolner-dom.html 单文件版
+pnpm bundle   # 用现有 dist 生成 kolner-dom.html 单文件版
 pnpm serve    # 本地静态预览单文件版（5180）
 ```
 

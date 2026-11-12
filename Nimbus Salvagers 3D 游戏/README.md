@@ -190,7 +190,7 @@ __nimbus.camera    // 当前相机
 
 【参考】
 - 详细说明与复现提示词：docs/projects/nimbus-salvagers.md
-- 最近提交：5bdefd6 feat: Nimbus Salvagers 第一人称科幻射击游戏
+- 最近提交：见仓库 `git log --oneline -1`
 ```
 
 建议技能：`/grilling`、`/tdd`、`/code-review`、`/playwright`、`/frontend-design`、`/handoff`。

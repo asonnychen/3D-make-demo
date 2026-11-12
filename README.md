@@ -12,23 +12,24 @@
 
 ## 快速开始
 
+根目录只是项目容器。每个子目录都是独立项目，各自安装依赖、各自启动、互不干扰；新增项目请遵循 [`AGENTS.md`](AGENTS.md) 的「项目目录规则」。
+
 ```powershell
+# 项目 01 · 科隆大教堂
+cd 科隆大教堂建筑
 pnpm install
-pnpm dev      # 科隆大教堂 http://127.0.0.1:5173
-pnpm build    # 产出 科隆大教堂建筑/dist/
-pnpm bundle   # 构建并生成 科隆大教堂建筑/kolner-dom.html 单文件版
-```
+pnpm dev      # http://127.0.0.1:5173
+pnpm build    # 产出 dist/
+pnpm bundle   # 构建并生成 kolner-dom.html 单文件版
 
-单文件版本把 Three.js、样式和全部程序内联进一个 HTML（约 640 KB），双击即可打开，不需要服务器、不依赖网络。
-
-游戏是独立子项目，有自己的依赖与端口：
-
-```powershell
+# 项目 02 · Nimbus Salvagers
 cd "Nimbus Salvagers 3D 游戏"
 pnpm install
 pnpm dev      # http://127.0.0.1:5174
-pnpm build    # 产出 Nimbus Salvagers 3D 游戏/dist/
+pnpm build    # 产出 dist/
 ```
+
+单文件版本把 Three.js、样式和全部程序内联进一个 HTML（约 640 KB），双击即可打开，不需要服务器、不依赖网络。
 
 技术栈：Vite + Three.js + Tailwind CSS v4。
 
@@ -36,35 +37,27 @@ pnpm build    # 产出 Nimbus Salvagers 3D 游戏/dist/
 
 ```
 3D-make-demo/
-├─ package.json            依赖与脚本（dev / build / preview / bundle）
-├─ pnpm-lock.yaml
-├─ vite.config.js          vite 根指向 科隆大教堂建筑/
+├─ README.md               作品索引
+├─ AGENTS.md               项目目录规则与协作约定
+├─ .gitignore
 ├─ docs/
 │  ├─ images/              作品预览图
 │  ├─ projects/            每个作品的详细说明与 AI 提示词
 │  └─ agents/              技能配置（issue 追踪器、triage 标签、领域文档）
-├─ 科隆大教堂建筑/
+├─ 科隆大教堂建筑/          项目 01 · 端口 5173
+│  ├─ README.md
 │  ├─ index.html
+│  ├─ package.json         独立依赖与脚本
+│  ├─ pnpm-lock.yaml
+│  ├─ vite.config.js
 │  ├─ kolner-dom.html      单文件版本（构建产物）
 │  ├─ scripts/
-│  │  ├─ bundle-html.mjs   内联打包
-│  │  └─ serve-static.mjs  本地静态预览
 │  └─ src/
-│     ├─ main.js           场景、灯光、相机、昼夜、交互
-│     ├─ cathedral.js      教堂与底座的程序化几何
-│     └─ style.css
-└─ Nimbus Salvagers 3D 游戏/
-   ├─ index.html           标题、HUD、暂停/阵亡/胜利界面
-   ├─ package.json         独立依赖与脚本（dev / build / preview）
+└─ Nimbus Salvagers 3D 游戏/  项目 02 · 端口 5174
+   ├─ README.md
+   ├─ index.html
+   ├─ package.json
+   ├─ pnpm-lock.yaml
    ├─ vite.config.js
    └─ src/
-      ├─ main.js           状态机、输入、战斗事件、章节流程
-      ├─ config.js         平台、波次、改装档位与数值
-      ├─ world.js          天空、云海、岛屿、涡轮机、代币、风帆
-      ├─ player.js         第一人称控制器、第一人称武器、相机
-      ├─ enemies.js        守卫模型、AI、投射物、血条
-      ├─ fx.js             粒子、曳光、冲击环、枪口闪光
-      ├─ audio.js          WebAudio 合成音效与环境声
-      ├─ ui.js             HUD 与界面状态
-      └─ style.css
 ```

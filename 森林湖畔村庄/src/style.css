@@ -1,0 +1,869 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Lac des Fleurs · 森林湖畔村庄
+   视觉：深林绿玻璃面板 + 奶油衬线标题 + 陶土色点缀
+   ============================================================ */
+
+:root {
+  --ink: #0e1d16;
+  --ink-2: #16291f;
+  --ink-3: #1d3427;
+  --paper: #f3ecdb;
+  --paper-dim: rgba(243, 236, 219, 0.66);
+  --muted: rgba(243, 236, 219, 0.45);
+  --sage: #a8c0a6;
+  --sage-bright: #cfe0c8;
+  --terracotta: #c2704e;
+  --line: rgba(243, 236, 219, 0.15);
+  --line-soft: rgba(243, 236, 219, 0.08);
+  --panel: rgba(17, 38, 29, 0.84);
+  --panel-solid: rgba(15, 33, 25, 0.96);
+  --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, "Songti SC", "SimSun", serif;
+  --sans: "Bahnschrift", "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  overscroll-behavior: none;
+}
+
+#app {
+  position: relative;
+}
+
+#scene {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  outline: none;
+}
+
+.is-hidden {
+  display: none !important;
+}
+
+.vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background:
+    radial-gradient(120% 95% at 50% 42%, transparent 52%, rgba(9, 20, 15, 0.4) 100%),
+    linear-gradient(180deg, rgba(9, 20, 15, 0.18) 0%, transparent 16%, transparent 84%, rgba(9, 20, 15, 0.3) 100%);
+  mix-blend-mode: multiply;
+}
+
+.fade {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: var(--ink);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.42s ease;
+}
+
+.fade.on {
+  opacity: 1;
+}
+
+/* ------------------------------------------------------------ 顶部工具条 */
+
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 28px;
+  pointer-events: none;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 9.5px;
+  letter-spacing: 0.28em;
+  color: var(--paper-dim);
+  text-transform: uppercase;
+}
+
+.brand-mark {
+  width: 13px;
+  height: 13px;
+  border: 1px solid var(--sage);
+  transform: rotate(45deg);
+  box-shadow: inset 0 0 6px rgba(168, 192, 166, 0.35);
+}
+
+.brand-name {
+  color: var(--paper);
+}
+
+.brand-cn {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--sage);
+  padding-left: 10px;
+  border-left: 1px solid var(--line);
+}
+
+.top-actions {
+  display: flex;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 11px;
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--paper-dim);
+  background: rgba(15, 33, 25, 0.62);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.chip:hover {
+  color: var(--paper);
+  border-color: rgba(243, 236, 219, 0.38);
+}
+
+.chip[aria-pressed="true"] {
+  color: var(--ink);
+  background: var(--sage-bright);
+  border-color: var(--sage-bright);
+}
+
+.chip-icon {
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* ------------------------------------------------------------ 标题面板 */
+
+.title-panel {
+  position: fixed;
+  left: 28px;
+  bottom: 28px;
+  z-index: 14;
+  width: min(440px, calc(100vw - 56px));
+  padding: 26px 28px 22px;
+  background:
+    linear-gradient(180deg, rgba(24, 48, 36, 0.88), rgba(13, 29, 21, 0.9)),
+    radial-gradient(120% 120% at 0% 0%, rgba(194, 112, 78, 0.12), transparent 60%);
+  border: 1px solid rgba(243, 236, 219, 0.14);
+  box-shadow: 0 30px 80px rgba(5, 12, 8, 0.45);
+  backdrop-filter: blur(14px) saturate(1.05);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.title-panel::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 22px;
+  bottom: 22px;
+  width: 2px;
+  background: linear-gradient(180deg, transparent, var(--terracotta) 30%, var(--sage) 70%, transparent);
+  opacity: 0.75;
+}
+
+body[data-mode="walk"] .title-panel {
+  opacity: 0;
+  transform: translateY(14px);
+  pointer-events: none;
+}
+
+body[data-mode="walk"] .topbar {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+body[data-mode="walk"] .marker {
+  pointer-events: none;
+}
+
+.kicker {
+  margin: 0;
+  font-size: 9px;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  color: var(--sage);
+}
+
+.title-panel h1 {
+  margin: 10px 0 0;
+  font-family: var(--serif);
+  font-size: clamp(38px, 4.4vw, 54px);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.005em;
+  color: var(--paper);
+  text-shadow: 0 10px 40px rgba(4, 10, 7, 0.55);
+}
+
+.lede {
+  margin: 14px 0 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  color: var(--paper-dim);
+}
+
+.lede-cn {
+  margin: 7px 0 0;
+  font-size: 11.5px;
+  line-height: 1.75;
+  letter-spacing: 0.05em;
+  color: rgba(243, 236, 219, 0.52);
+}
+
+.actions {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  margin-top: 22px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 20px;
+  font-family: var(--sans);
+  font-size: 11.5px;
+  letter-spacing: 0.14em;
+  color: var(--paper);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.btn.primary {
+  background: var(--paper);
+  border-color: var(--paper);
+  color: #16291f;
+  font-weight: 600;
+}
+
+.btn.primary:hover {
+  background: #fff8e8;
+  transform: translateY(-1px);
+}
+
+.btn.ghost:hover {
+  border-color: rgba(243, 236, 219, 0.5);
+  background: rgba(243, 236, 219, 0.06);
+}
+
+.btn.icon {
+  width: 42px;
+  padding: 0;
+  font-size: 14px;
+  color: var(--paper-dim);
+}
+
+.btn.small {
+  padding: 9px 14px;
+  font-size: 10.5px;
+}
+
+.btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn .arrow {
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0.8;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin: 18px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--line-soft);
+  font-size: 8.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.controls span {
+  color: var(--paper-dim);
+  letter-spacing: 0.12em;
+}
+
+.controls i {
+  font-style: normal;
+  color: rgba(243, 236, 219, 0.28);
+}
+
+.controls i::after {
+  content: "·";
+  margin-left: 7px;
+  color: rgba(243, 236, 219, 0.18);
+}
+
+.touch-note {
+  display: none;
+  margin: 10px 0 0;
+  font-size: 10px;
+  line-height: 1.6;
+  letter-spacing: 0.05em;
+  color: rgba(243, 236, 219, 0.4);
+}
+
+@media (pointer: coarse) {
+  .touch-note {
+    display: block;
+  }
+}
+
+.title-panel.collapsed .kicker,
+.title-panel.collapsed .lede,
+.title-panel.collapsed .lede-cn,
+.title-panel.collapsed .controls {
+  display: none;
+}
+
+.title-panel.collapsed {
+  width: min(360px, calc(100vw - 56px));
+  padding-bottom: 20px;
+}
+
+.title-panel.collapsed h1 {
+  font-size: 34px;
+}
+
+/* ------------------------------------------------------------ 地点标记 */
+
+.markers {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+body[data-mode="walk"] .markers {
+  opacity: 0;
+}
+
+.marker {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px 4px 5px;
+  background: rgba(15, 33, 25, 0.55);
+  border: 1px solid rgba(243, 236, 219, 0.22);
+  border-radius: 2px;
+  color: var(--paper);
+  cursor: pointer;
+  pointer-events: auto;
+  transform: translate(-50%, -50%);
+  backdrop-filter: blur(6px);
+  white-space: nowrap;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.marker:hover {
+  background: var(--paper);
+  color: var(--ink);
+  border-color: var(--paper);
+}
+
+.marker .pin {
+  width: 8px;
+  height: 8px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(243, 236, 219, 0.12);
+  flex: none;
+}
+
+.marker .pin::after {
+  content: "";
+  display: block;
+  width: 2px;
+  height: 2px;
+  margin: 2px auto 0;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.marker .label {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.marker .label small {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 9.5px;
+  letter-spacing: 0.02em;
+  opacity: 0.55;
+}
+
+.marker .label b {
+  font-weight: 500;
+}
+
+.marker.is-active {
+  background: var(--paper);
+  color: var(--ink);
+  border-color: var(--paper);
+}
+
+/* ------------------------------------------------------------ 地点信息卡 */
+
+.info-card {
+  position: fixed;
+  top: 84px;
+  right: 28px;
+  z-index: 15;
+  width: min(330px, calc(100vw - 40px));
+  padding: 22px 24px 20px;
+  background: linear-gradient(180deg, rgba(22, 45, 33, 0.94), rgba(12, 27, 19, 0.96));
+  border: 1px solid rgba(243, 236, 219, 0.16);
+  box-shadow: 0 24px 70px rgba(4, 10, 7, 0.5);
+  backdrop-filter: blur(12px);
+  animation: card-in 0.3s ease both;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.info-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.info-close:hover {
+  color: var(--paper);
+}
+
+.info-kicker {
+  margin: 0;
+  font-size: 8.5px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--terracotta);
+}
+
+.info-card h2 {
+  margin: 8px 0 0;
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+.info-en {
+  margin: 2px 0 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--sage);
+}
+
+.info-desc {
+  margin: 12px 0 0;
+  font-size: 11.5px;
+  line-height: 1.85;
+  letter-spacing: 0.03em;
+  color: rgba(243, 236, 219, 0.66);
+}
+
+.info-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+/* ------------------------------------------------------------ 步行 HUD */
+
+.walk-hud {
+  position: fixed;
+  inset: 0;
+  z-index: 13;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+body[data-mode="walk"] .walk-hud {
+  opacity: 1;
+}
+
+.walk-place {
+  position: absolute;
+  top: 74px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 15px;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--paper);
+  background: rgba(13, 29, 21, 0.66);
+  border: 1px solid rgba(243, 236, 219, 0.16);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.walk-place.on {
+  opacity: 1;
+}
+
+.walk-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sage-bright);
+  box-shadow: 0 0 10px var(--sage-bright);
+}
+
+.walk-controls {
+  position: absolute;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--paper-dim);
+  background: rgba(13, 29, 21, 0.5);
+  border: 1px solid rgba(243, 236, 219, 0.12);
+  backdrop-filter: blur(6px);
+  white-space: nowrap;
+}
+
+.walk-controls kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  font-family: var(--sans);
+  font-size: 8.5px;
+  color: var(--paper);
+  border: 1px solid rgba(243, 236, 219, 0.24);
+  border-radius: 2px;
+  background: rgba(243, 236, 219, 0.05);
+}
+
+.walk-controls .sep {
+  width: 1px;
+  height: 12px;
+  margin: 0 4px;
+  background: rgba(243, 236, 219, 0.14);
+}
+
+.exit-btn {
+  position: absolute;
+  top: 22px;
+  right: 28px;
+  padding: 8px 14px;
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--paper);
+  background: rgba(13, 29, 21, 0.6);
+  border: 1px solid rgba(243, 236, 219, 0.24);
+  border-radius: 2px;
+  cursor: pointer;
+  pointer-events: auto;
+  backdrop-filter: blur(8px);
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.exit-btn:hover {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.walk-reticle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: rgba(243, 236, 219, 0.6);
+  box-shadow: 0 0 6px rgba(9, 20, 15, 0.8);
+  opacity: 0.7;
+}
+
+/* ------------------------------------------------------------ 暂停 */
+
+.pause {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(8, 18, 13, 0.6);
+  backdrop-filter: blur(10px);
+  animation: fade-in 0.28s ease both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.pause-card {
+  width: min(460px, 100%);
+  padding: 34px 36px 28px;
+  background: linear-gradient(165deg, rgba(25, 50, 37, 0.96), rgba(11, 25, 17, 0.98));
+  border: 1px solid rgba(243, 236, 219, 0.18);
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.55);
+}
+
+.pause-card h2 {
+  margin: 10px 0 0;
+  font-family: var(--serif);
+  font-size: clamp(26px, 3vw, 34px);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+.pause-lede {
+  margin: 12px 0 0;
+  font-size: 11.5px;
+  line-height: 1.85;
+  color: rgba(243, 236, 219, 0.6);
+}
+
+.pause-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 22px;
+}
+
+.hint {
+  margin: 14px 0 0;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: rgba(243, 236, 219, 0.34);
+}
+
+/* ------------------------------------------------------------ 载入 */
+
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(90% 70% at 50% 40%, rgba(38, 68, 50, 0.9), rgba(10, 22, 15, 1) 70%),
+    #0a1610;
+  transition: opacity 0.9s ease, visibility 0.9s ease;
+}
+
+.loader.done {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.loader-inner {
+  width: min(420px, 84vw);
+  text-align: center;
+}
+
+.loader-inner h2 {
+  margin: 12px 0 0;
+  font-family: var(--serif);
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+
+.loader-inner p:not(.kicker) {
+  margin: 10px 0 0;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  color: rgba(243, 236, 219, 0.45);
+}
+
+.loader-bar {
+  position: relative;
+  height: 1px;
+  margin-top: 26px;
+  background: rgba(243, 236, 219, 0.14);
+  overflow: hidden;
+}
+
+.loader-bar i {
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, var(--sage-bright), transparent);
+  animation: loader-run 1.4s ease-in-out infinite;
+}
+
+@keyframes loader-run {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(280%);
+  }
+}
+
+/* ------------------------------------------------------------ 响应式 */
+
+@media (max-width: 820px) {
+  .topbar {
+    padding: 14px 16px;
+  }
+
+  .brand-cn {
+    display: none;
+  }
+
+  .title-panel {
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+    width: auto;
+    padding: 20px 20px 18px;
+  }
+
+  .title-panel h1 {
+    font-size: 38px;
+  }
+
+  .info-card {
+    top: auto;
+    bottom: 110px;
+    right: 14px;
+    width: calc(100vw - 28px);
+  }
+
+  .walk-place {
+    top: 62px;
+  }
+
+  .exit-btn {
+    top: 14px;
+    right: 16px;
+  }
+
+  .walk-controls {
+    bottom: 14px;
+    max-width: calc(100vw - 28px);
+    overflow: hidden;
+  }
+
+  .walk-controls .sep,
+  .walk-controls span:not(.sep) {
+    display: none;
+  }
+
+  .walk-controls kbd {
+    display: inline-grid;
+  }
+
+  .marker .label small {
+    display: none;
+  }
+
+  .pause-card {
+    padding: 26px 22px 22px;
+  }
+}
+
+@media (max-height: 620px) {
+  .title-panel .lede-cn,
+  .title-panel .controls {
+    display: none;
+  }
+
+  .title-panel {
+    padding: 18px 20px;
+  }
+}

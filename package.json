@@ -12,7 +12,9 @@
     "dev:cathedral": "cd 科隆大教堂建筑 && vite",
     "build:cathedral": "cd 科隆大教堂建筑 && vite build",
     "dev:game": "cd \"Nimbus Salvagers 3D 游戏\" && vite",
-    "build:game": "cd \"Nimbus Salvagers 3D 游戏\" && vite build"
+    "build:game": "cd \"Nimbus Salvagers 3D 游戏\" && vite build",
+    "dev:village": "cd 森林湖畔村庄 && vite",
+    "build:village": "cd 森林湖畔村庄 && vite build"
   },
   "dependencies": {
     "three": "^0.187.0"

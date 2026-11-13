@@ -6,6 +6,7 @@
 | :--- | :--- | :--- |
 | `科隆大教堂建筑/` | 科隆大教堂 · Kölner Dom | 5173 |
 | `Nimbus Salvagers 3D 游戏/` | Nimbus Salvagers · 云海拾荒者 | 5174 |
+| `森林湖畔村庄/` | Lac des Fleurs · 森林湖畔村庄 | 5175 |
 
 > **铁律：先建文件夹，再开发。** 新增任何项目，第一步都必须先在仓库根目录创建新的项目文件夹，之后所有代码、页面、构建配置与文档都放在该文件夹内。禁止在根目录直接写项目代码，禁止把新项目塞进已有项目的目录，禁止多个项目共用一个目录。
 
@@ -44,8 +45,9 @@
 | :--- | :--- | :--- |
 | 5173 | 科隆大教堂建筑 | `pnpm dev` / `pnpm build` |
 | 5174 | Nimbus Salvagers 3D 游戏 | `pnpm dev:game` / `pnpm build:game` |
+| 5175 | 森林湖畔村庄 | `pnpm dev:village` / `pnpm build:village` |
 | 5180 | 科隆大教堂单文件静态预览 | `pnpm serve` |
-| 5175+ | 新项目依次递增 | `pnpm dev:<name>` / `pnpm build:<name>` |
+| 5176+ | 新项目依次递增 | `pnpm dev:<name>` / `pnpm build:<name>` |
 
 新项目在 `vite.config.js` 中显式写 `server.port`，在根 `package.json` 添加上面的脚本，并更新本表与根 `README.md`。
 

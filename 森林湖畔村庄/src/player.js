@@ -32,6 +32,8 @@ export class Player {
     this.y = 0
     this.vy = 0
     this.jumpQueued = false
+    this.riding = false
+    this.ridePos = new THREE.Vector3()
     this.onLockChange = null
     this.onStep = null
 
@@ -91,13 +93,36 @@ export class Player {
 
   disable() {
     this.enabled = false
+    this.riding = false
     this.keys.clear()
     this.velocity.set(0, 0, 0)
     this.jumpQueued = false
     this.unlock()
   }
 
+  beginRide(x, y, z) {
+    this.riding = true
+    this.ridePos.set(x, y, z)
+    this.keys.clear()
+    this.velocity.set(0, 0, 0)
+    this.jumpQueued = false
+    this.grounded = false
+    this.y = y
+    this.eyeY = y + EYE
+    this.camera.position.set(x, this.eyeY, z)
+  }
+
+  setRidePosition(x, y, z) {
+    this.ridePos.set(x, y, z)
+  }
+
+  endRide(x, z) {
+    this.riding = false
+    this.teleport(x, z, this.yaw)
+  }
+
   teleport(x, z, yaw = 0) {
+    this.riding = false
     this.position.set(x, 0, z)
     this.yaw = yaw
     this.pitch = -0.04
@@ -123,6 +148,16 @@ export class Player {
   update(dt) {
     if (!this.enabled) return
     dt = Math.min(dt, 0.05)
+
+    if (this.riding) {
+      this.position.set(this.ridePos.x, 0, this.ridePos.z)
+      this.y = this.ridePos.y
+      this.eyeY = this.ridePos.y + EYE
+      this.jumpQueued = false
+      this.camera.position.set(this.ridePos.x, this.eyeY, this.ridePos.z)
+      this.camera.rotation.set(this.pitch, this.yaw, 0)
+      return
+    }
 
     const forward = (this.keys.has('KeyW') || this.keys.has('ArrowUp') ? 1 : 0) -
       (this.keys.has('KeyS') || this.keys.has('ArrowDown') ? 1 : 0)

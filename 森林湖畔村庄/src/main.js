@@ -134,6 +134,12 @@ const pauseEl = $('pause')
 const markersEl = $('markers')
 const walkPlace = $('walk-place')
 const walkPlaceName = $('walk-place-name')
+const boatPrompt = $('boat-prompt')
+const boatHud = $('boat-hud')
+const boatBar = $('boat-bar')
+const boatTime = $('boat-time')
+const boat = village.dock.boat
+let boatRide = null
 
 const soundButtons = [$('btn-sound'), $('btn-pause-sound')]
 const ambience = new Ambience()
@@ -339,9 +345,86 @@ function enterWalk(loc = null) {
   })
 }
 
+/* ------------------------------------------------------------ 乘船游湖 */
+
+const BOAT_MOOR = { x: -20, z: 4.2 }
+const BOAT_DURATION = 30
+
+function nearBoat() {
+  if (!boat) return false
+  const onBoard = player.y < 0.8
+  return onBoard && Math.hypot(player.position.x - boat.position.x, player.position.z - boat.position.z) < 2.8
+}
+
+function startBoatRide() {
+  if (mode !== 'walk' || paused || boatRide || !nearBoat()) return
+  const x = boat.position.x
+  const z = boat.position.z
+  boatRide = {
+    t: 0,
+    duration: BOAT_DURATION,
+    radius: Math.hypot(x, z),
+    angle0: Math.atan2(x, z),
+  }
+  player.lock()
+  player.beginRide(x, 0.36, z)
+  closeInfo()
+  boatHud.classList.remove('is-hidden')
+  boatBar.style.width = '0%'
+  boatTime.textContent = `${BOAT_DURATION.toFixed(1)} s`
+  document.body.dataset.riding = 'true'
+  boatPrompt.classList.add('is-hidden')
+  showPlace('湖上泛舟')
+}
+
+function updateBoatRide(dt) {
+  if (!boatRide) return
+  boatRide.t = Math.min(boatRide.duration, boatRide.t + dt)
+  const k = boatRide.t / boatRide.duration
+  const a = boatRide.angle0 + k * Math.PI * 2
+  const x = Math.sin(a) * boatRide.radius
+  const z = Math.cos(a) * boatRide.radius
+  const bob = Math.sin(boatRide.t * 1.5) * 0.022
+
+  boat.position.set(x, 0.02 + bob, z)
+  // 船头（局部 +X）朝切线方向
+  const tx = Math.cos(a)
+  const tz = -Math.sin(a)
+  const targetRot = Math.atan2(-tz, tx)
+  let diff = targetRot - boat.rotation.y
+  diff = Math.atan2(Math.sin(diff), Math.cos(diff))
+  boat.rotation.y += diff * Math.min(1, dt * 2.4)
+  boat.rotation.z = Math.sin(boatRide.t * 1.1) * 0.025
+
+  player.setRidePosition(x, 0.36 + bob, z)
+  boatBar.style.width = `${(k * 100).toFixed(1)}%`
+  boatTime.textContent = `${Math.max(0, BOAT_DURATION - boatRide.t).toFixed(1)} s`
+
+  if (boatRide.t >= boatRide.duration) endBoatRide()
+}
+
+function endBoatRide() {
+  if (!boatRide) return
+  boatRide = null
+  boat.position.set(BOAT_MOOR.x, 0.02, BOAT_MOOR.z)
+  boat.rotation.set(0, 0, 0.02)
+  player.endRide(BOAT_MOOR.x, BOAT_MOOR.z)
+  boatHud.classList.add('is-hidden')
+  document.body.dataset.riding = 'false'
+  boatBar.style.width = '0%'
+  showPlace('回到西岸码头')
+}
+
+function updateBoatPrompt() {
+  const show = mode === 'walk' && !paused && !boatRide && nearBoat()
+  boatPrompt.classList.toggle('is-hidden', !show)
+}
+
 function enterOverview(focus = null) {
   transition(() => {
     hidePause()
+    if (boatRide) endBoatRide()
+    boatPrompt.classList.add('is-hidden')
     player.disable()
     mode = 'overview'
     document.body.dataset.mode = 'overview'
@@ -411,6 +494,10 @@ window.addEventListener('keydown', (e) => {
     // 浏览器已处理指针解锁时，这里兜底
     if (!player.locked) showPause()
   }
+  if (e.code === 'Space' && mode === 'walk' && !paused && !boatRide && nearBoat()) {
+    e.preventDefault()
+    startBoatRide()
+  }
 })
 
 /* ------------------------------------------------------------ 步行地点提示 */
@@ -462,17 +549,21 @@ let elapsedTime = 0
 
 function animate(now = performance.now()) {
   requestAnimationFrame(animate)
-  const dt = Math.min((now - lastFrame) / 1000, 0.05)
+  const rawDt = (now - lastFrame) / 1000
+  const dt = Math.min(rawDt, 0.05)
   lastFrame = now
   elapsedTime += dt
   const t = elapsedTime
 
   updateWind(t)
   water.update(t)
+  village.updateFountain(t)
   sky.birds.update(t)
 
   if (mode === 'walk' && !paused) {
+    if (boatRide) updateBoatRide(Math.min(rawDt, 0.25))
     player.update(dt)
+    updateBoatPrompt()
   }
 
   if (mode === 'overview') {
@@ -515,6 +606,12 @@ window.__lac = {
   village,
   ruin,
   controls,
+  boat,
+  get boatRide() {
+    return boatRide
+  },
+  startBoatRide,
+  endBoatRide,
   get mode() {
     return mode
   },

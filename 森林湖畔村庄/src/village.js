@@ -490,6 +490,17 @@ function addRoads(scene) {
     )
   )
 
+  // 环湖路到码头入口
+  group.add(
+    stripGeometry(
+      linePoints(new THREE.Vector3(-31.8, 0, 0), new THREE.Vector3(-30.0, 0, 3.3), 6),
+      2.6,
+      0.063,
+      false,
+      0xb7a684
+    )
+  )
+
   // 林间步道：从主路继续蜿蜒进森林
   const trail = new THREE.CatmullRomCurve3([
     new THREE.Vector3(48, 0, -46),
@@ -554,21 +565,94 @@ function createSquare(scene) {
     )
   }
 
-  // 喷泉
+  // 喷泉：石砌水池（开口）+ 水面 + 上层水碗 + 弧形水柱
   const fy = y + 0.04
-  b.cyl(M_STONE, 3.05, 3.25, 0.72, 24, M(sx, fy + 0.36, sz))
-  b.add(new THREE.TorusGeometry(3.05, 0.16, 8, 28), M_STONE, M(sx, fy + 0.74, sz, 0, Math.PI / 2))
-  b.cyl(mat(0x8fc2b6, { roughness: 0.16, metalness: 0.3 }), 2.9, 2.9, 0.06, 24, M(sx, fy + 0.66, sz))
+  b.cyl(M_STONE_DARK, 3.55, 3.7, 0.24, 28, M(sx, fy + 0.12, sz))
+  b.add(new THREE.CylinderGeometry(3.05, 3.22, 0.9, 28, 1, true), M_STONE, M(sx, fy + 0.55, sz))
+  b.add(new THREE.TorusGeometry(3.08, 0.17, 8, 32), M_STONE, M(sx, fy + 0.99, sz, 0, Math.PI / 2))
+  b.cyl(M_STONE_DARK, 2.84, 2.84, 0.12, 24, M(sx, fy + 0.17, sz))
+  // 中央柱与上层水碗
   b.cyl(M_STONE, 0.45, 0.6, 1.3, 12, M(sx, fy + 1.4, sz))
   b.cyl(M_STONE, 1.15, 1.3, 0.3, 20, M(sx, fy + 2.05, sz))
-  b.cyl(mat(0x8fc2b6, { roughness: 0.16, metalness: 0.3 }), 1.02, 1.02, 0.05, 20, M(sx, fy + 2.21, sz))
   b.cyl(M_STONE, 0.24, 0.32, 0.7, 10, M(sx, fy + 2.45, sz))
   b.add(new THREE.SphereGeometry(0.28, 12, 10), M_STONE, M(sx, fy + 2.88, sz))
-  // 细水柱
-  const waterMat = mat(0xd8f0e8, { roughness: 0.1, metalness: 0.2, transparent: true, opacity: 0.5 })
+
+  // 水面：程序化涟漪着色器
+  const fountainTime = { value: 0 }
+  const waterSurfaceMat = new THREE.ShaderMaterial({
+    uniforms: { uTime: fountainTime },
+    vertexShader: /* glsl */ `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      uniform float uTime;
+      varying vec2 vUv;
+      void main() {
+        vec2 p = vUv - 0.5;
+        float r = length(p) * 2.0;
+        float wave = sin(r * 46.0 - uTime * 3.2) * 0.5 + 0.5;
+        float wave2 = sin(p.x * 28.0 + uTime * 1.7) * cos(p.y * 24.0 - uTime * 1.3) * 0.5 + 0.5;
+        vec3 deep = vec3(0.055, 0.22, 0.25);
+        vec3 shallow = vec3(0.3, 0.62, 0.6);
+        vec3 col = mix(deep, shallow, wave * 0.2 + wave2 * 0.14 + 0.12);
+        float edge = smoothstep(0.94, 0.78, r);
+        col = mix(col, vec3(0.58, 0.82, 0.78), edge * 0.18);
+        gl_FragColor = vec4(col, 1.0);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }
+    `,
+  })
+
+  const basinWater = new THREE.Mesh(new THREE.CircleGeometry(2.8, 48), waterSurfaceMat)
+  basinWater.rotation.x = -Math.PI / 2
+  basinWater.position.set(sx, fy + 0.64, sz)
+  group.add(basinWater)
+
+  const bowlWater = new THREE.Mesh(new THREE.CircleGeometry(1.0, 32), waterSurfaceMat)
+  bowlWater.rotation.x = -Math.PI / 2
+  bowlWater.position.set(sx, fy + 2.22, sz)
+  group.add(bowlWater)
+
+  // 弧形水柱
+  const jetMat = new THREE.MeshStandardMaterial({
+    color: 0xd6f3ec,
+    transparent: true,
+    opacity: 0.55,
+    roughness: 0.1,
+    metalness: 0.15,
+    emissive: 0x9fd8d0,
+    emissiveIntensity: 0.18,
+    depthWrite: false,
+  })
+  const droplets = []
+  const dropGeo = new THREE.SphereGeometry(0.035, 5, 4)
   for (let i = 0; i < 4; i++) {
     const a = (i / 4) * TAU
-    b.cyl(waterMat, 0.025, 0.025, 0.85, 5, M(sx + Math.sin(a) * 0.5, fy + 2.35, sz + Math.cos(a) * 0.5, 0, Math.sin(a) * 0.4, Math.cos(a) * 0.4))
+    const start = new THREE.Vector3(sx + Math.sin(a) * 1.08, fy + 2.18, sz + Math.cos(a) * 1.08)
+    const mid = new THREE.Vector3(sx + Math.sin(a) * 1.75, fy + 2.85, sz + Math.cos(a) * 1.75)
+    const end = new THREE.Vector3(sx + Math.sin(a) * 2.55, fy + 0.66, sz + Math.cos(a) * 2.55)
+    const curve = new THREE.QuadraticBezierCurve3(start, mid, end)
+    const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 22, 0.03, 5, false), jetMat)
+    group.add(tube)
+    for (let k = 0; k < 4; k++) {
+      const drop = new THREE.Mesh(dropGeo, jetMat)
+      group.add(drop)
+      droplets.push({ curve, mesh: drop, phase: (k / 4 + i * 0.11) % 1 })
+    }
+  }
+
+  const updateFountain = (elapsed) => {
+    fountainTime.value = elapsed
+    for (const d of droplets) {
+      const t = (elapsed * 0.75 + d.phase) % 1
+      d.curve.getPoint(t, d.mesh.position)
+      d.mesh.scale.setScalar(0.7 + Math.sin(t * Math.PI) * 0.5)
+    }
   }
 
   // 长椅
@@ -657,6 +741,7 @@ function createSquare(scene) {
   return {
     group,
     obstacles,
+    update: updateFountain,
   }
 }
 
@@ -668,8 +753,8 @@ function createDock(scene) {
   const deckY = 0.78
   const x0 = -30.2
   const x1 = -21.8
-  const zc = 1
-  const halfW = 2.1
+  const zc = 3.5
+  const halfW = 1.2
 
   // 甲板木板
   const planks = 18
@@ -687,8 +772,12 @@ function createDock(scene) {
       b.cyl(M_WOOD_DARK, 0.16, 0.18, 3.6, 7, M(px, deckY - 1.5, zc + sz * (halfW - 0.1)))
     }
   }
-  // 系船柱
+  // 系船柱与跳板
   b.cyl(M_WOOD_DARK, 0.2, 0.24, 0.7, 8, M(x1 + 0.5, deckY + 0.35, zc + 1.6))
+  b.box(M_WOOD, 1.8, 0.09, 0.8, M(-20.9, 0.7, zc + 0.7))
+  for (const sx of [-21.6, -20.2]) {
+    b.box(M_WOOD_DARK, 0.08, 0.55, 0.08, M(sx, 0.42, zc + 1.0))
+  }
   // 上岸坡道
   const steps = 7
   for (let i = 0; i < steps; i++) {
@@ -700,47 +789,75 @@ function createDock(scene) {
   b.build(group)
   scene.add(group)
 
-  // 划艇
+  // 划艇：中空船壳 + 深色内底
   const boat = new THREE.Group()
-  const shape = new THREE.Shape()
-  shape.moveTo(-1.5, 0)
-  shape.quadraticCurveTo(-1.85, 0.55, -0.5, 0.62)
-  shape.quadraticCurveTo(0.8, 0.64, 1.75, 0)
-  shape.quadraticCurveTo(0.8, -0.64, -0.5, -0.62)
-  shape.quadraticCurveTo(-1.85, -0.55, -1.5, 0)
-  const hullGeo = new THREE.ExtrudeGeometry(shape, { depth: 0.6, bevelEnabled: false, curveSegments: 12 })
+  const boatOutline = (s) => {
+    const sh = new THREE.Shape()
+    sh.moveTo(-1.5 * s, 0)
+    sh.quadraticCurveTo(-1.85 * s, 0.55 * s, -0.5 * s, 0.62 * s)
+    sh.quadraticCurveTo(0.8 * s, 0.64 * s, 1.75 * s, 0)
+    sh.quadraticCurveTo(0.8 * s, -0.64 * s, -0.5 * s, -0.62 * s)
+    sh.quadraticCurveTo(-1.85 * s, -0.55 * s, -1.5 * s, 0)
+    return sh
+  }
+  const shape = boatOutline(1)
+  const holePath = new THREE.Path()
+  holePath.setFromPoints(boatOutline(0.76).getPoints(48))
+  shape.holes.push(holePath)
+
+  const hullGeo = new THREE.ExtrudeGeometry(shape, { depth: 0.5, bevelEnabled: false, curveSegments: 12 })
   hullGeo.rotateX(-Math.PI / 2)
   const hull = new THREE.Mesh(hullGeo, mat(0x7d6a4e, { roughness: 0.95, side: THREE.DoubleSide }))
-  hull.position.y = 0.62
+  hull.position.y = -0.02
   hull.castShadow = true
   boat.add(hull)
-  const inner = new THREE.Mesh(hullGeo.clone(), mat(0xa88f6a, { roughness: 1 }))
-  inner.scale.set(0.86, 0.7, 0.86)
-  inner.position.y = 0.68
-  boat.add(inner)
+
+  const floorGeo = new THREE.ShapeGeometry(boatOutline(0.76))
+  floorGeo.rotateX(-Math.PI / 2)
+  const floor = new THREE.Mesh(floorGeo, mat(0x4f3f2e, { roughness: 1 }))
+  floor.position.y = 0.12
+  boat.add(floor)
+
   for (const x of [-0.6, 0.55]) {
-    const seat = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.08, 1.0), M_WOOD)
-    seat.position.set(x, 0.72, 0)
+    const seat = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.08, 0.92), M_WOOD)
+    seat.position.set(x, 0.34, 0)
     boat.add(seat)
   }
   for (const sz of [-1, 1]) {
     const oar = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 2.4, 6), M_WOOD_DARK)
     oar.rotation.z = Math.PI / 2
     oar.rotation.y = 0.2
-    oar.position.set(0.3, 0.74, sz * 0.55)
+    oar.position.set(0.3, 0.4, sz * 0.55)
     boat.add(oar)
   }
-  boat.position.set(-18.6, 0.02, 7.6)
+  boat.position.set(-20, 0.02, 4.2)
   boat.scale.setScalar(0.9)
-  boat.rotation.y = 0.35
+  boat.rotation.y = 0
   boat.rotation.z = Math.sin(0.2) * 0.03
   scene.add(boat)
+
+  // 缆绳：从船头系到码头边缘
+  const ropeCurve = new THREE.QuadraticBezierCurve3(
+    new THREE.Vector3(-21.0, 0.5, 4.0),
+    new THREE.Vector3(-21.4, 0.68, 4.1),
+    new THREE.Vector3(-21.7, 0.86, 4.2)
+  )
+  const rope = new THREE.Mesh(
+    new THREE.TubeGeometry(ropeCurve, 16, 0.018, 4, false),
+    mat(0xcbb68e, { roughness: 1 })
+  )
+  group.add(rope)
 
   return {
     group,
     boat,
     walkables: [
-      { x1: x1 - 0.3, x2: x0 + 0.2, z1: zc - halfW + 0.05, z2: zc + halfW - 0.05, y: deckY + 0.08 },
+      // 码头甲板
+      { x1: x0 + 0.2, x2: x1 + 0.3, z1: zc - halfW + 0.05, z2: zc + halfW - 0.05, y: deckY + 0.08 },
+      // 上船跳板
+      { x1: -22, x2: -19.4, z1: 3.9, z2: 4.5, y: 0.74 },
+      // 小船甲板
+      { x1: -21.2, x2: -18.8, z1: 3.6, z2: 4.8, y: 0.36 },
     ],
     obstacles: [
       { x: x1 + 0.5, z: zc + 1.6, r: 0.4 },
@@ -918,6 +1035,7 @@ export function createVillage(scene) {
 
   const square = createSquare(group)
   obstacles.push(...square.obstacles)
+  const updateFountain = square.update
 
   const dock = createDock(group)
   walkables.push(...dock.walkables)
@@ -935,5 +1053,5 @@ export function createVillage(scene) {
 
   addRoads(group)
 
-  return { group, houses, obstacles, boxes, walkables, dock, chapel }
+  return { group, houses, obstacles, boxes, walkables, dock, chapel, updateFountain }
 }

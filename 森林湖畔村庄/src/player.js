@@ -1,5 +1,5 @@
 /* ============================================================
-   步行漫游：指针锁定、WASD 移动、地形贴合与简单碰撞
+   步行漫游：指针锁定、WASD 移动、奔跑、跳跃、地形贴合与碰撞
    ============================================================ */
 
 import * as THREE from 'three'
@@ -7,11 +7,15 @@ import { WORLD } from './config.js'
 import { groundHeight } from './terrain.js'
 
 const EYE = 1.68
+const RADIUS = 0.38
+const GRAVITY = 17
+const JUMP_SPEED = 5.4
 
 export class Player {
-  constructor(camera, { obstacles = [], walkables = [] } = {}) {
+  constructor(camera, { obstacles = [], boxes = [], walkables = [] } = {}) {
     this.camera = camera
     this.obstacles = obstacles
+    this.boxes = boxes
     this.walkables = walkables
 
     this.enabled = false
@@ -24,6 +28,10 @@ export class Player {
     this.bobTime = 0
     this.keys = new Set()
     this.wading = false
+    this.grounded = true
+    this.y = 0
+    this.vy = 0
+    this.jumpQueued = false
     this.onLockChange = null
     this.onStep = null
 
@@ -31,6 +39,7 @@ export class Player {
 
     this._onKeyDown = (e) => {
       if (!this.enabled) return
+      if (e.code === 'Space' && !e.repeat) this.jumpQueued = true
       this.keys.add(e.code)
       if (['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ShiftLeft', 'ShiftRight', 'Space'].includes(e.code)) {
         e.preventDefault()
@@ -74,13 +83,17 @@ export class Player {
   enable() {
     this.enabled = true
     this.camera.rotation.order = 'YXZ'
-    this.eyeY = this.sampleGround(this.position.x, this.position.z) + EYE
+    this.y = this.sampleGround(this.position.x, this.position.z)
+    this.vy = 0
+    this.grounded = true
+    this.eyeY = this.y + EYE
   }
 
   disable() {
     this.enabled = false
     this.keys.clear()
     this.velocity.set(0, 0, 0)
+    this.jumpQueued = false
     this.unlock()
   }
 
@@ -89,7 +102,10 @@ export class Player {
     this.yaw = yaw
     this.pitch = -0.04
     this.velocity.set(0, 0, 0)
-    this.eyeY = this.sampleGround(x, z) + EYE
+    this.y = this.sampleGround(x, z)
+    this.vy = 0
+    this.grounded = true
+    this.eyeY = this.y + EYE
     this.camera.position.set(x, this.eyeY, z)
     this.camera.rotation.set(this.pitch, this.yaw, 0)
   }
@@ -124,7 +140,7 @@ export class Player {
     const groundNow = this.sampleGround(this.position.x, this.position.z)
     this.wading = groundNow < 0.02
 
-    let speed = run ? 8.4 : 4.0
+    let speed = run ? 7.6 : 4.0
     if (this.wading) speed *= 0.55
 
     const target = new THREE.Vector3()
@@ -155,31 +171,85 @@ export class Player {
       this.position.multiplyScalar(WORLD.walkLimit / r)
     }
 
-    // 障碍物推挤
+    // 圆形障碍（树、灌木、喷泉、摊位等）
     for (const o of this.obstacles) {
       const dx = this.position.x - o.x
       const dz = this.position.z - o.z
       const dist = Math.hypot(dx, dz)
-      const min = o.r + 0.32
+      const min = o.r + RADIUS
       if (dist < min && dist > 0.0001) {
         this.position.x = o.x + (dx / dist) * min
         this.position.z = o.z + (dz / dist) * min
       }
     }
 
-    const moving = this.velocity.length() > 0.35
-    const ground = this.sampleGround(this.position.x, this.position.z)
-    const targetEye = Math.max(ground + EYE, WORLD.waterLevel + 1.05)
-    this.eyeY += (targetEye - this.eyeY) * Math.min(1, dt * 10)
+    // 旋转盒障碍（房屋、院墙、教堂、田埂矮墙）
+    this.resolveBoxes()
 
-    if (moving) {
+    // 跳跃与重力
+    const ground = this.sampleGround(this.position.x, this.position.z)
+    if (this.jumpQueued && this.grounded) {
+      this.vy = JUMP_SPEED
+      this.grounded = false
+    }
+    this.jumpQueued = false
+
+    if (!this.grounded) {
+      this.vy -= GRAVITY * dt
+      this.y += this.vy * dt
+      if (this.y <= ground) {
+        this.y = ground
+        this.vy = 0
+        this.grounded = true
+      }
+    } else {
+      this.y = ground
+    }
+
+    const moving = this.velocity.length() > 0.35
+    const targetEye = Math.max(this.y + EYE, WORLD.waterLevel + 1.05)
+    this.eyeY += (targetEye - this.eyeY) * Math.min(1, dt * 16)
+
+    if (moving && this.grounded) {
       this.bobTime += dt * (run ? 11 : 7.5)
       if (this.onStep && Math.sin(this.bobTime) > 0.985) this.onStep()
     }
-    const bob = moving ? Math.sin(this.bobTime) * (run ? 0.055 : 0.035) : 0
+    const bob = moving && this.grounded ? Math.sin(this.bobTime) * (run ? 0.055 : 0.035) : 0
 
     this.camera.position.set(this.position.x, this.eyeY + bob, this.position.z)
     this.camera.rotation.set(this.pitch, this.yaw, 0)
+  }
+
+  resolveBoxes() {
+    for (const b of this.boxes) {
+      const c = Math.cos(b.ry)
+      const s = Math.sin(b.ry)
+      const dx = this.position.x - b.x
+      const dz = this.position.z - b.z
+      let lx = dx * c - dz * s
+      let lz = dx * s + dz * c
+
+      const cx = Math.max(-b.hw, Math.min(b.hw, lx))
+      const cz = Math.max(-b.hd, Math.min(b.hd, lz))
+      const px = lx - cx
+      const pz = lz - cz
+      const dist = Math.hypot(px, pz)
+      if (dist > RADIUS) continue
+
+      if (dist < 0.0001) {
+        // 已经在盒子内部：沿穿透更浅的轴推出
+        const penX = b.hw + RADIUS - Math.abs(lx)
+        const penZ = b.hd + RADIUS - Math.abs(lz)
+        if (penX < penZ) lx = Math.sign(lx || 1) * (b.hw + RADIUS)
+        else lz = Math.sign(lz || 1) * (b.hd + RADIUS)
+      } else {
+        lx = cx + (px / dist) * RADIUS
+        lz = cz + (pz / dist) * RADIUS
+      }
+
+      this.position.x = b.x + lx * c + lz * s
+      this.position.z = b.z - lx * s + lz * c
+    }
   }
 
   canStand(x, z) {

@@ -244,10 +244,13 @@ function createHouse(spec, scene) {
   // 前院：小径、矮墙、绣球与灯
   b.box(mat(0xcabf9f, { roughness: 1 }), 1.35, 0.06, 2.6, M(0, 0.02, d / 2 + 1.6))
   const wallZ = d / 2 + 2.9
-  b.box(M_STONE, w * 0.38, 0.62, 0.42, M(-(w * 0.5 - w * 0.19), 0.3, wallZ))
-  b.box(M_STONE, w * 0.38, 0.62, 0.42, M(w * 0.5 - w * 0.19, 0.3, wallZ))
-  b.box(M_STONE, 0.42, 0.8, 0.42, M(-0.72, 0.4, wallZ))
-  b.box(M_STONE, 0.42, 0.8, 0.42, M(0.72, 0.4, wallZ))
+  const gateHalf = 1.15
+  const wallWidth = w * 0.5 - gateHalf
+  const wallCenter = gateHalf + wallWidth / 2
+  b.box(M_STONE, wallWidth, 0.62, 0.42, M(-wallCenter, 0.3, wallZ))
+  b.box(M_STONE, wallWidth, 0.62, 0.42, M(wallCenter, 0.3, wallZ))
+  b.box(M_STONE, 0.42, 0.8, 0.42, M(-gateHalf, 0.4, wallZ))
+  b.box(M_STONE, 0.42, 0.8, 0.42, M(gateHalf, 0.4, wallZ))
   for (const sx of [-1, 1]) {
     b.add(new THREE.IcosahedronGeometry(0.62, 0), M_LEAF, M(sx * (w * 0.32), 0.75, wallZ - 0.45, 0, 0, 0, 1.3, 0.9, 1))
     b.add(new THREE.IcosahedronGeometry(0.5, 0), M_LEAF_LIGHT, M(sx * (w * 0.32) + 0.35, 0.6, wallZ - 0.5))
@@ -260,11 +263,35 @@ function createHouse(spec, scene) {
   b.build(group)
   scene.add(group)
 
+  // 碰撞体：房屋主体、前院矮墙（留出中间院门）、绣球与门灯
+  const th = a + Math.PI
+  const cth = Math.cos(th)
+  const sth = Math.sin(th)
+  const l2w = (lx, lz) => ({
+    x: cx + lx * cth + lz * sth,
+    z: cz - lx * sth + lz * cth,
+  })
+  const boxes = [
+    { x: cx, z: cz, hw: w / 2 + 0.35, hd: d / 2 + 0.35, ry: th },
+  ]
+  for (const sign of [-1, 1]) {
+    const p = l2w(sign * wallCenter, wallZ)
+    boxes.push({ x: p.x, z: p.z, hw: wallWidth / 2 + 0.05, hd: 0.34, ry: th })
+  }
+  const circles = [
+    { ...l2w(-gateHalf, wallZ), r: 0.32 },
+    { ...l2w(gateHalf, wallZ), r: 0.32 },
+    { ...l2w(-w * 0.32, wallZ - 0.45), r: 0.92 },
+    { ...l2w(w * 0.32, wallZ - 0.45), r: 0.92 },
+    { ...l2w(1.25, d / 2 + 0.75), r: 0.22 },
+  ]
+
   return {
     group,
     center: [cx, cz],
-    radius: Math.max(w, d) * 0.62 + 0.9,
     name: spec.name,
+    boxes,
+    circles,
   }
 }
 
@@ -336,7 +363,12 @@ function createChapel(scene) {
 
   b.build(group)
   scene.add(group)
-  return { group, center: [cx, cz], radius: 7.4 }
+  return {
+    group,
+    center: [cx, cz],
+    boxes: [{ x: cx, z: cz, hw: CHAPEL.w / 2 + 0.4, hd: CHAPEL.d / 2 + 1.15, ry: a + Math.PI }],
+    circles: [],
+  }
 }
 
 /* ------------------------------------------------------------ 道路 */
@@ -605,13 +637,26 @@ function createSquare(scene) {
   b.build(group)
   scene.add(group)
 
+  const obstacles = [
+    { x: sx, z: sz, r: 3.5 },
+    { x: 6.6, z: sz - 2.4, r: 2.2 },
+    { x: -6.4, z: sz + 2.2, r: 2.2 },
+  ]
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * TAU + Math.PI / 4
+    obstacles.push({ x: sx + Math.sin(a) * 6.4, z: sz + Math.cos(a) * 6.4, r: 1.15 })
+  }
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * TAU
+    obstacles.push({ x: sx + Math.sin(a) * 7.6, z: sz + Math.cos(a) * 7.6, r: 0.26 })
+  }
+  for (let i = 0; i < 3; i++) {
+    obstacles.push({ x: sx - 2.6 + i * 2.6, z: sz - 6.6, r: 0.55 })
+  }
+
   return {
     group,
-    obstacles: [
-      { x: sx, z: sz, r: 3.5 },
-      { x: 6.6, z: sz - 2.4, r: 2.2 },
-      { x: -6.4, z: sz + 2.2, r: 2.2 },
-    ],
+    obstacles,
   }
 }
 
@@ -748,6 +793,7 @@ function createPergola(scene) {
       { x: cx + 2.4, z: cz - 1.8, r: 0.4 },
       { x: cx - 2.4, z: cz + 1.8, r: 0.4 },
       { x: cx + 2.4, z: cz + 1.8, r: 0.4 },
+      { x: cx, z: cz + 0.4, r: 1.1 },
     ],
   }
 }
@@ -761,6 +807,7 @@ function createFieldDressing(scene) {
   const cz = 2
 
   // 低石墙（留出西侧入口）
+  const boxes = []
   const segments = 18
   for (let i = 0; i < segments; i++) {
     const a = (i / segments) * TAU
@@ -769,6 +816,7 @@ function createFieldDressing(scene) {
     const z = cz + Math.cos(a) * 10.8
     if (groundHeight(x, z) < 0.2) continue
     b.box(M_STONE, 0.9, 0.6, 0.42, M(x, groundHeight(x, z) + 0.3, z, a))
+    boxes.push({ x, z, hw: 0.47, hd: 0.23, ry: a })
   }
 
   // 蜂箱
@@ -798,6 +846,7 @@ function createFieldDressing(scene) {
   return {
     group,
     obstacles: [{ x: 55.5, z: 8, r: 2.4 }],
+    boxes,
   }
 }
 
@@ -852,17 +901,20 @@ export function createVillage(scene) {
   scene.add(group)
 
   const obstacles = []
+  const boxes = []
   const walkables = []
   const houses = []
 
   for (const spec of HOUSES) {
     const h = createHouse(spec, group)
     houses.push(h)
-    obstacles.push({ x: h.center[0], z: h.center[1], r: h.radius })
+    obstacles.push(...h.circles)
+    boxes.push(...h.boxes)
   }
 
   const chapel = createChapel(group)
-  obstacles.push({ x: chapel.center[0], z: chapel.center[1], r: chapel.radius })
+  obstacles.push(...chapel.circles)
+  boxes.push(...chapel.boxes)
 
   const square = createSquare(group)
   obstacles.push(...square.obstacles)
@@ -876,11 +928,12 @@ export function createVillage(scene) {
 
   const field = createFieldDressing(group)
   obstacles.push(...field.obstacles)
+  boxes.push(...field.boxes)
 
   const sign = createTrailSign(group)
   obstacles.push(...sign.obstacles)
 
   addRoads(group)
 
-  return { group, houses, obstacles, walkables, dock, chapel }
+  return { group, houses, obstacles, boxes, walkables, dock, chapel }
 }

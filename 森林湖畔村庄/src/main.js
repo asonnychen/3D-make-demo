@@ -80,8 +80,8 @@ const reflectionCam = water.mesh.getReflectionCamera(camera)
 reflectionCam.layers.disable(2)
 camera.layers.enable(2)
 
-createTrees(scene)
-createBushes(scene)
+const trees = createTrees(scene)
+const bushes = createBushes(scene)
 const flowers = createFlowers(scene)
 const grass = createGrass(scene)
 flowers.layers.set(2)
@@ -92,7 +92,12 @@ water.lilies.traverse((o) => o.layers.set(2))
 const village = createVillage(scene)
 const ruin = createRuin(scene)
 
-const obstacles = [...village.obstacles, ruin.obstacle]
+const obstacles = [
+  ...village.obstacles,
+  ruin.obstacle,
+  ...trees.colliders,
+  ...bushes.colliders,
+]
 
 /* ------------------------------------------------------------ 相机控制 */
 
@@ -111,7 +116,11 @@ controls.addEventListener('start', () => {
   controls.autoRotate = false
 })
 
-const player = new Player(camera, { obstacles, walkables: village.walkables })
+const player = new Player(camera, {
+  obstacles,
+  boxes: village.boxes,
+  walkables: village.walkables,
+})
 player.attach(canvas)
 
 /* ------------------------------------------------------------ UI 元素 */

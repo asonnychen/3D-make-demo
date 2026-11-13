@@ -127,6 +127,7 @@ export function createTrees(scene) {
 
   const dummy = new THREE.Object3D()
   const color = new THREE.Color()
+  const colliders = []
   let n = 0
   let guard = 0
   while (n < count && guard++ < 12000) {
@@ -164,6 +165,7 @@ export function createTrees(scene) {
     const light = 0.21 + Math.random() * 0.14
     color.setHSL(hue, 0.36 + Math.random() * 0.18, light)
     canopies.setColorAt(n, color)
+    colliders.push({ x, z, r: 0.5 * s })
     n++
   }
   trunks.count = n
@@ -173,7 +175,7 @@ export function createTrees(scene) {
   if (canopies.instanceColor) canopies.instanceColor.needsUpdate = true
 
   scene.add(trunks, canopies)
-  return { trunks, canopies }
+  return { trunks, canopies, colliders }
 }
 
 /* ------------------------------------------------------------ 灌木 */
@@ -189,6 +191,7 @@ export function createBushes(scene) {
 
   const dummy = new THREE.Object3D()
   const color = new THREE.Color()
+  const colliders = []
   let n = 0
   let guard = 0
   while (n < count && guard++ < 5000) {
@@ -207,13 +210,14 @@ export function createBushes(scene) {
     mesh.setMatrixAt(n, dummy.matrix)
     color.setHSL(0.25 + Math.random() * 0.03, 0.36, 0.22 + Math.random() * 0.12)
     mesh.setColorAt(n, color)
+    colliders.push({ x, z, r: s * 0.95 })
     n++
   }
   mesh.count = n
   mesh.instanceMatrix.needsUpdate = true
   if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
   scene.add(mesh)
-  return mesh
+  return { mesh, colliders }
 }
 
 /* ------------------------------------------------------------ 花 */

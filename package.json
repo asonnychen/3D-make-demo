@@ -14,9 +14,12 @@
     "dev:game": "cd \"Nimbus Salvagers 3D 游戏\" && vite",
     "build:game": "cd \"Nimbus Salvagers 3D 游戏\" && vite build",
     "dev:village": "cd 森林湖畔村庄 && vite",
-    "build:village": "cd 森林湖畔村庄 && vite build"
+    "build:village": "cd 森林湖畔村庄 && vite build",
+    "dev:minecraft": "cd 我的世界 && vite",
+    "build:minecraft": "cd 我的世界 && vite build"
   },
   "dependencies": {
+    "playcanvas": "^2.24.1",
     "three": "^0.187.0"
   },
   "devDependencies": {

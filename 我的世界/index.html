@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>我的世界 · PlayCanvas 体素沙盒</title>
+    <meta
+      name="description"
+      content="用 PlayCanvas 引擎复现的《我的世界》：程序化生成的像素方块地形、可破坏与建造的第一人称体素沙盒。"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23234a1d'/%3E%3Crect x='4' y='4' width='11' height='11' fill='%2368a544'/%3E%3Crect x='17' y='4' width='11' height='11' fill='%237c5b33'/%3E%3Crect x='4' y='17' width='11' height='11' fill='%238b6b47'/%3E%3Crect x='17' y='17' width='11' height='11' fill='%239a9a9a'/%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="scene"></canvas>
+
+      <!-- 水下滤镜 -->
+      <div id="underwater" class="underwater"></div>
+
+      <!-- ============================ HUD ============================ -->
+      <div id="hud" class="hud">
+        <div id="crosshair" class="crosshair" aria-hidden="true">
+          <i></i><i></i>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><span>FPS</span><b id="stat-fps">--</b></div>
+          <div class="stat"><span>坐标</span><b id="stat-pos">0 0 0</b></div>
+          <div class="stat"><span>区块</span><b id="stat-chunk">0, 0</b></div>
+          <div class="stat"><span>模式</span><b id="stat-mode">步行</b></div>
+        </div>
+
+        <div class="topbar">
+          <button id="btn-fly" class="chip" type="button">飞行 <kbd>F</kbd></button>
+          <button id="btn-help" class="chip" type="button">帮助 <kbd>H</kbd></button>
+          <button id="btn-fullscreen" class="chip" type="button">全屏</button>
+          <button id="btn-reset" class="chip" type="button">重生成</button>
+        </div>
+
+        <div class="hotbar-wrap">
+          <div id="block-label" class="block-label">草方块</div>
+          <div id="hotbar" class="hotbar"></div>
+          <p class="hotbar-hint">滚轮 / 数字键 1-9 切换 · 左键挖掘 · 右键放置</p>
+        </div>
+      </div>
+
+      <!-- ============================ 开始界面 ============================ -->
+      <div id="menu" class="screen">
+        <div class="menu-card">
+          <p class="kicker">PLAYCANVAS VOXEL SANDBOX</p>
+          <h1 class="logo">我的世界</h1>
+          <p class="logo-sub">MINE&nbsp;WORLD</p>
+          <p class="lede">
+            一片程序化生成的方块大陆：草丘、湖泊、森林与雪山。挖开它，再把它重新盖起来。
+          </p>
+
+          <label class="seed-field">
+            <span>世界种子</span>
+            <input id="seed" type="text" value="2026" maxlength="12" spellcheck="false" />
+          </label>
+
+          <button id="btn-start" class="btn primary" type="button">进入世界</button>
+
+          <div class="keys">
+            <div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>移动</span></div>
+            <div><kbd>鼠标</kbd><span>环顾</span></div>
+            <div><kbd>Space</kbd><span>跳跃 / 上升</span></div>
+            <div><kbd>Shift</kbd><span>奔跑 / 下降</span></div>
+            <div><kbd>左键</kbd><span>挖掘</span></div>
+            <div><kbd>右键</kbd><span>放置</span></div>
+            <div><kbd>F</kbd><span>飞行</span></div>
+            <div><kbd>Esc</kbd><span>暂停</span></div>
+          </div>
+
+          <p class="footnote">基于 PlayCanvas 2.x · 全部地形与贴图实时程序化生成</p>
+        </div>
+      </div>
+
+      <!-- ============================ 暂停 ============================ -->
+      <div id="pause" class="screen hidden">
+        <div class="pause-card">
+          <p class="kicker">PAUSED</p>
+          <h2>世界暂停了</h2>
+          <p class="lede">点击「继续」重新锁定鼠标。按 Esc 也可以回到这里。</p>
+          <div class="pause-actions">
+            <button id="btn-resume" class="btn primary" type="button">继续游戏</button>
+            <button id="btn-pause-fly" class="btn ghost" type="button">切换飞行</button>
+            <button id="btn-pause-reset" class="btn ghost" type="button">重生成世界</button>
+          </div>
+          <p class="footnote">世界会在你离开指针锁定后自动暂停</p>
+        </div>
+      </div>
+
+      <!-- ============================ 帮助 ============================ -->
+      <div id="help" class="screen hidden">
+        <div class="pause-card">
+          <p class="kicker">CONTROLS</p>
+          <h2>操作说明</h2>
+          <div class="help-grid">
+            <div><kbd>W A S D</kbd><span>前后左右移动</span></div>
+            <div><kbd>鼠标</kbd><span>转动视角</span></div>
+            <div><kbd>Space</kbd><span>跳跃；飞行时上升</span></div>
+            <div><kbd>Shift</kbd><span>奔跑；飞行时下降</span></div>
+            <div><kbd>左键</kbd><span>挖掉准星指向的方块</span></div>
+            <div><kbd>右键</kbd><span>放下当前方块</span></div>
+            <div><kbd>中键</kbd><span>吸取指向的方块</span></div>
+            <div><kbd>1 - 9</kbd><span>切换快捷栏</span></div>
+            <div><kbd>滚轮</kbd><span>切换快捷栏</span></div>
+            <div><kbd>F</kbd><span>飞行模式开关</span></div>
+            <div><kbd>Esc</kbd><span>暂停 / 释放鼠标</span></div>
+            <div><kbd>H</kbd><span>打开 / 关闭帮助</span></div>
+          </div>
+          <button id="btn-help-close" class="btn primary" type="button">知道了</button>
+        </div>
+      </div>
+
+      <!-- ============================ 载入 ============================ -->
+      <div id="loading" class="screen hidden">
+        <div class="loading-card">
+          <p class="kicker">GENERATING WORLD</p>
+          <h2>正在生成世界</h2>
+          <p id="loading-note" class="lede">隆起丘陵 · 灌满湖泊 · 种下橡树</p>
+          <div class="bar"><i id="loading-bar"></i></div>
+          <p id="loading-pct" class="footnote">0%</p>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

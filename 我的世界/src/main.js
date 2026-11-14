@@ -248,7 +248,7 @@ const heldTextures = new Map()
 const heldEntity = new Entity('held-item')
 heldEntity.addComponent('render', { meshInstances: [] })
 camera.addChild(heldEntity)
-heldEntity.setLocalScale(0.19, 0.19, 0.19)
+heldEntity.setLocalScale(0.26, 0.26, 0.26)
 heldEntity.enabled = false
 
 const heldMaterial = new StandardMaterial()
@@ -322,9 +322,9 @@ function swing() {
 function updateHeld(dt) {
   if (swingT > 0) swingT = Math.max(0, swingT - dt / 0.3)
   const k = swingT > 0 ? Math.sin((1 - swingT) * Math.PI) : 0
-  // 挥动：向左前方劈下（绕 X 轴前倾 + 轻微侧倾），物品始终留在画面内
-  heldEntity.setLocalPosition(0.3 - 0.12 * k, -0.23 + 0.07 * k, -0.62 - 0.06 * k)
-  heldEntity.setLocalEulerAngles(-4 - 58 * k, -20 + 18 * k, 4 + 20 * k)
+  // 挥动：以右下为支点顺时针翻腕劈下（剑尖由右上扫向下方）
+  heldEntity.setLocalPosition(0.32 - 0.06 * k, -0.22 + 0.02 * k, -0.62 + 0.04 * k)
+  heldEntity.setLocalEulerAngles(-4 - 35 * k, -20 + 14 * k, 4 - 75 * k)
 }
 
 interaction.onSwing = swing

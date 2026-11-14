@@ -22,6 +22,16 @@ export class Player {
     this.inWater = false
     this.eyeInWater = false
 
+    /* 生命值 */
+    this.maxHealth = 20
+    this.health = 20
+    this.dead = false
+    this.invuln = 0
+    this.sinceHurt = 0
+    this.regenTimer = 0
+    this.onHurt = null
+    this.onDeath = null
+
     this._qy = new Quat()
     this._qx = new Quat()
     this._forward = new Vec3()
@@ -34,6 +44,44 @@ export class Player {
     this.yaw = 35
     this.pitch = -12
     this.onGround = false
+  }
+
+  /** 受伤：扣血 + 击退 + 短暂无敌帧 */
+  hurt(amount, sourcePos) {
+    if (this.dead || this.invuln > 0) return false
+    this.health = Math.max(0, this.health - amount)
+    this.invuln = 0.5
+    this.sinceHurt = 0
+    this.regenTimer = 0
+
+    if (sourcePos) {
+      const dx = this.position.x - sourcePos.x
+      const dz = this.position.z - sourcePos.z
+      const len = Math.hypot(dx, dz) || 1
+      this.velocity.x += (dx / len) * 4.6
+      this.velocity.z += (dz / len) * 4.6
+      if (!this.flying) this.velocity.y = Math.max(this.velocity.y, 4.2)
+    }
+
+    this.onHurt?.(amount)
+    if (this.health <= 0) {
+      this.dead = true
+      this.onDeath?.()
+    }
+    return true
+  }
+
+  heal(amount) {
+    this.health = Math.min(this.maxHealth, this.health + amount)
+  }
+
+  revive() {
+    this.health = this.maxHealth
+    this.dead = false
+    this.invuln = 1.2
+    this.sinceHurt = 0
+    this.regenTimer = 0
+    this.velocity.set(0, 0, 0)
   }
 
   get eyePosition() {
@@ -70,6 +118,19 @@ export class Player {
   /* ---------------------------------------------------------- 物理 */
 
   update(dt, input) {
+    // 无敌帧与缓慢回血
+    if (this.invuln > 0) this.invuln -= dt
+    if (!this.dead) {
+      this.sinceHurt += dt
+      if (this.sinceHurt > 6 && this.health < this.maxHealth) {
+        this.regenTimer += dt
+        if (this.regenTimer >= 2.2) {
+          this.regenTimer = 0
+          this.heal(1)
+        }
+      }
+    }
+
     const world = this.world
     const speed = this.flying
       ? PLAYER.flySpeed * (input.sprint ? 1.8 : 1)

@@ -1,6 +1,6 @@
 /* ============================================================
    我的世界 · 入口
-   PlayCanvas 应用、区块渲染、第一人称玩法与界面联动
+   PlayCanvas 应用、区块渲染、背包 / 工具 / 武器、怪物与界面联动
    ============================================================ */
 
 import {
@@ -17,9 +17,11 @@ import {
   StandardMaterial,
   Texture,
   PIXELFORMAT_SRGBA8,
+  ADDRESS_CLAMP_TO_EDGE,
   ADDRESS_REPEAT,
   FILTER_NEAREST,
   FILTER_NEAREST_MIPMAP_LINEAR,
+  BLEND_NORMAL,
   Vec2,
   Mesh,
   MeshInstance,
@@ -27,13 +29,16 @@ import {
 import './style.css'
 
 import { FOG_START, FOG_END, SEA_LEVEL, WORLD_X, WORLD_Z } from './config.js'
-import { BLOCK, BLOCK_INFO, HOTBAR, iconTile } from './blocks.js'
-import { createAtlas, extractTile, TILE_INDEX, ATLAS_COLS, TILE_PX } from './textures.js'
+import { createAtlas, extractTile, TILE_PX } from './textures.js'
+import { ITEMS, STARTER_KIT, attackDamage } from './items.js'
+import { createIcons } from './icons.js'
+import { Inventory, InventoryUI } from './inventory.js'
 import { World } from './world.js'
 import { ChunkRenderer } from './chunks.js'
 import { createSky } from './sky.js'
 import { Player } from './player.js'
 import { Interaction, createSelectionBox } from './interaction.js'
+import { MobManager } from './mobs.js'
 import { buildQuadGeometry } from './mesher.js'
 
 /* ------------------------------------------------------------ 应用 */
@@ -82,6 +87,7 @@ app.root.addChild(sun)
 /* ------------------------------------------------------------ 世界 */
 
 const atlas = createAtlas()
+const icons = createIcons(atlas)
 const world = new World(2026)
 const chunks = new ChunkRenderer(app, world, atlas)
 const sky = createSky(app)
@@ -133,14 +139,60 @@ createOcean()
 
 const player = new Player(world, camera)
 const selection = createSelectionBox(app, device)
-const interaction = new Interaction(app, world, player, selection)
-interaction.selectedBlock = BLOCK.GRASS
+
+/* ------------------------------------------------------------ 背包 */
+
+const inventory = new Inventory()
+const interaction = new Interaction(app, world, player, selection, inventory)
+
+/* ------------------------------------------------------------ 界面元素 */
+
+const el = {
+  body: document.body,
+  menu: document.querySelector('#menu'),
+  pause: document.querySelector('#pause'),
+  help: document.querySelector('#help'),
+  death: document.querySelector('#death'),
+  loading: document.querySelector('#loading'),
+  loadingBar: document.querySelector('#loading-bar'),
+  loadingPct: document.querySelector('#loading-pct'),
+  loadingNote: document.querySelector('#loading-note'),
+  seed: document.querySelector('#seed'),
+  hotbar: document.querySelector('#hotbar'),
+  hearts: document.querySelector('#hearts'),
+  blockLabel: document.querySelector('#block-label'),
+  statFps: document.querySelector('#stat-fps'),
+  statPos: document.querySelector('#stat-pos'),
+  statChunk: document.querySelector('#stat-chunk'),
+  statMode: document.querySelector('#stat-mode'),
+  statMobs: document.querySelector('#stat-mobs'),
+  underwater: document.querySelector('#underwater'),
+  damage: document.querySelector('#damage'),
+  mineBar: document.querySelector('#mine-bar'),
+  toast: document.querySelector('#toast'),
+  btnFly: document.querySelector('#btn-fly'),
+  btnHelp: document.querySelector('#btn-help'),
+  inventory: document.querySelector('#inventory'),
+  invStorage: document.querySelector('#inv-storage'),
+  invHotbar: document.querySelector('#inv-hotbar'),
+  recipeList: document.querySelector('#recipe-list'),
+  invHint: document.querySelector('#inv-hint'),
+  invDrag: document.querySelector('#inv-drag'),
+  craftHint: document.querySelector('#craft-hint'),
+}
 
 /* ------------------------------------------------------------ 状态 */
 
-let state = 'loading' // loading | menu | play | paused | help
+let state = 'loading' // loading | menu | play | paused | help | inventory | dead
 let orbitAngle = 0
 let spawnPoint = { x: 64, y: 40, z: 64 }
+let labelTimer = 0
+let damageFlash = 0
+let toastTimer = 0
+let attackCooldown = 0
+let swingT = 0
+let lastHeldId
+let startHintShown = false
 
 const input = {
   forward: false,
@@ -151,97 +203,230 @@ const input = {
   sprint: false,
 }
 
-/* ------------------------------------------------------------ 界面元素 */
-
-const el = {
-  body: document.body,
-  menu: document.querySelector('#menu'),
-  pause: document.querySelector('#pause'),
-  help: document.querySelector('#help'),
-  loading: document.querySelector('#loading'),
-  loadingBar: document.querySelector('#loading-bar'),
-  loadingPct: document.querySelector('#loading-pct'),
-  loadingNote: document.querySelector('#loading-note'),
-  seed: document.querySelector('#seed'),
-  hotbar: document.querySelector('#hotbar'),
-  blockLabel: document.querySelector('#block-label'),
-  statFps: document.querySelector('#stat-fps'),
-  statPos: document.querySelector('#stat-pos'),
-  statChunk: document.querySelector('#stat-chunk'),
-  statMode: document.querySelector('#stat-mode'),
-  underwater: document.querySelector('#underwater'),
-  btnFly: document.querySelector('#btn-fly'),
-  btnHelp: document.querySelector('#btn-help'),
-}
-
 const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve))
 
 function showScreen(name) {
   el.menu.classList.toggle('hidden', name !== 'menu')
   el.pause.classList.toggle('hidden', name !== 'paused')
   el.help.classList.toggle('hidden', name !== 'help')
+  el.death.classList.toggle('hidden', name !== 'dead')
   el.loading.classList.toggle('hidden', name !== 'loading')
 }
 
-/* ------------------------------------------------------------ 快捷栏 */
+/* ------------------------------------------------------------ 背包界面 */
 
-function tileIcon(tileName) {
-  const index = TILE_INDEX[tileName] ?? 0
-  const col = index % ATLAS_COLS
-  const row = Math.floor(index / ATLAS_COLS)
-  const c = document.createElement('canvas')
-  c.width = 48
-  c.height = 48
-  const ctx = c.getContext('2d')
-  ctx.imageSmoothingEnabled = false
-  ctx.drawImage(
-    atlas.canvas,
-    col * TILE_PX,
-    row * TILE_PX,
-    TILE_PX,
-    TILE_PX,
-    0,
-    0,
-    48,
-    48,
-  )
-  return c.toDataURL()
+let ui = null
+
+function announceItem() {
+  const stack = inventory.get(ui?.activeSlot ?? 0)
+  const item = stack ? ITEMS.get(stack.id) : null
+  el.blockLabel.textContent = item ? item.cn : '空手'
+  el.blockLabel.classList.add('show')
+  labelTimer = 1.6
 }
 
-const slotButtons = []
+function handleSelect(index) {
+  interaction.activeSlot = index
+  interaction.progress = 0
+  syncHeld()
+  announceItem()
+}
 
-function buildHotbar() {
-  el.hotbar.innerHTML = ''
-  slotButtons.length = 0
-  HOTBAR.forEach((blockId, i) => {
-    const button = document.createElement('button')
-    button.type = 'button'
-    button.className = 'slot'
-    button.title = BLOCK_INFO[blockId].cn
-    button.innerHTML = `<span class="num">${i + 1}</span><img alt="" src="${tileIcon(iconTile(blockId))}" />`
-    button.addEventListener('click', (e) => {
-      e.stopPropagation()
-      selectSlot(i, true)
-    })
-    el.hotbar.appendChild(button)
-    slotButtons.push(button)
+ui = new InventoryUI({
+  inventory,
+  icons,
+  el,
+  onSelect: handleSelect,
+})
+
+inventory.onChange(() => syncHeld())
+
+/* ------------------------------------------------------------ 手持物品 */
+
+const heldTextures = new Map()
+
+const heldEntity = new Entity('held-item')
+heldEntity.addComponent('render', { meshInstances: [] })
+camera.addChild(heldEntity)
+heldEntity.setLocalScale(0.19, 0.19, 0.19)
+heldEntity.enabled = false
+
+const heldMaterial = new StandardMaterial()
+heldMaterial.useLighting = false
+heldMaterial.useFog = false
+heldMaterial.diffuse = new Color(1, 1, 1)
+heldMaterial.ambient = new Color(1, 1, 1)
+heldMaterial.blendType = BLEND_NORMAL
+heldMaterial.depthWrite = false
+heldMaterial.alphaTest = 0.25
+heldMaterial.update()
+
+function createHeldQuad() {
+  const mesh = new Mesh(device)
+  mesh.setPositions(new Float32Array([-0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0]))
+  mesh.setNormals(new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]))
+  mesh.setUvs(0, new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]))
+  mesh.setIndices(new Uint32Array([0, 1, 2, 0, 2, 3]))
+  mesh.update()
+  return new MeshInstance(mesh, heldMaterial)
+}
+
+heldEntity.render.meshInstances = [createHeldQuad()]
+
+function heldTexture(itemId) {
+  if (heldTextures.has(itemId)) return heldTextures.get(itemId)
+  const source = icons.itemCanvas(itemId)
+  if (!source) return null
+  const texture = new Texture(device, {
+    width: source.width,
+    height: source.height,
+    format: PIXELFORMAT_SRGBA8,
+    mipmaps: false,
+    minFilter: FILTER_NEAREST,
+    magFilter: FILTER_NEAREST,
+    addressU: ADDRESS_CLAMP_TO_EDGE,
+    addressV: ADDRESS_CLAMP_TO_EDGE,
   })
-  selectSlot(0, false)
+  texture.setSource(source)
+  heldTextures.set(itemId, texture)
+  return texture
 }
 
-let activeSlot = 0
-let labelTimer = 0
+function syncHeld() {
+  const stack = inventory.get(ui.activeSlot)
+  const id = stack?.id ?? null
+  if (id === lastHeldId) return
+  lastHeldId = id
 
-function selectSlot(index, announce = true) {
-  activeSlot = ((index % HOTBAR.length) + HOTBAR.length) % HOTBAR.length
-  const blockId = HOTBAR[activeSlot]
-  interaction.selectedBlock = blockId
-  slotButtons.forEach((btn, i) => btn.classList.toggle('active', i === activeSlot))
-  if (announce) {
-    el.blockLabel.textContent = BLOCK_INFO[blockId].cn
-    el.blockLabel.classList.add('show')
-    labelTimer = 1.6
+  if (!id) {
+    heldEntity.enabled = false
+    return
   }
+  const texture = heldTexture(id)
+  if (!texture) {
+    heldEntity.enabled = false
+    return
+  }
+  heldMaterial.diffuseMap = texture
+  heldMaterial.opacityMap = texture
+  heldMaterial.opacityMapChannel = 'a'
+  heldMaterial.update()
+  heldEntity.enabled = true
+}
+
+function swing() {
+  swingT = 1
+}
+
+function updateHeld(dt) {
+  if (swingT > 0) swingT = Math.max(0, swingT - dt / 0.28)
+  const k = swingT > 0 ? Math.sin((1 - swingT) * Math.PI) : 0
+  heldEntity.setLocalPosition(0.3 - 0.1 * k, -0.23 - 0.1 * k, -0.62 + 0.06 * k)
+  heldEntity.setLocalEulerAngles(-4 - 34 * k, -20 + 14 * k, 4 - 48 * k)
+}
+
+interaction.onSwing = swing
+
+/* ------------------------------------------------------------ 怪物 */
+
+const mobs = new MobManager(app, world, player)
+
+mobs.onDeath = () => {
+  const loot = [{ id: 'rotten_flesh', count: 1 + Math.floor(Math.random() * 2) }]
+  if (Math.random() < 0.3) loot.push({ id: 'coal', count: 1 })
+  if (Math.random() < 0.12) loot.push({ id: 'iron_ingot', count: 1 })
+
+  for (const entry of loot) {
+    const left = inventory.add(entry.id, entry.count)
+    if (left === 0) {
+      const item = ITEMS.get(entry.id)
+      showToast(`获得 ${item?.cn ?? entry.id} ×${entry.count}`)
+    }
+  }
+  player.heal(1)
+}
+
+/* ------------------------------------------------------------ 生命值界面 */
+
+const HEART_PIXELS = [
+  '.##.##.',
+  '#######',
+  '#######',
+  '.#####.',
+  '..###..',
+  '...#...',
+]
+
+function heartURL(mode) {
+  const cols = 7
+  const rows = HEART_PIXELS.length
+  const canvasEl = document.createElement('canvas')
+  canvasEl.width = cols
+  canvasEl.height = rows
+  const ctx = canvasEl.getContext('2d')
+  const full = '#d84a3f'
+  const empty = '#2a2a2a'
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      if (HEART_PIXELS[y][x] !== '#') continue
+      const isFull = mode === 'full' || (mode === 'half' && x < cols / 2)
+      ctx.fillStyle = isFull ? full : empty
+      ctx.fillRect(x, y, 1, 1)
+    }
+  }
+  return canvasEl.toDataURL()
+}
+
+const heartCache = { full: heartURL('full'), half: heartURL('half'), empty: heartURL('empty') }
+let lastHealthShown = -1
+
+function renderHearts() {
+  if (player.health === lastHealthShown) return
+  lastHealthShown = player.health
+  const total = Math.ceil(player.maxHealth / 2)
+  let html = ''
+  for (let i = 0; i < total; i++) {
+    const hp = player.health - i * 2
+    const mode = hp >= 2 ? 'full' : hp >= 1 ? 'half' : 'empty'
+    html += `<img class="heart" src="${heartCache[mode]}" alt="" />`
+  }
+  el.hearts.innerHTML = html
+}
+
+/* ------------------------------------------------------------ 提示 */
+
+function showToast(text) {
+  el.toast.textContent = text
+  el.toast.classList.add('show')
+  toastTimer = 1.8
+}
+
+interaction.onPickup = (itemId, count, ok) => {
+  const item = ITEMS.get(itemId)
+  if (!ok) {
+    showToast('背包已满')
+    return
+  }
+  showToast(`获得 ${item?.cn ?? itemId} ×${count}`)
+}
+
+interaction.onToolBreak = (item) => {
+  showToast(`${item.cn} 用坏了`)
+}
+
+player.onHurt = () => {
+  damageFlash = 0.4
+  el.damage.classList.add('on')
+}
+
+player.onDeath = () => {
+  state = 'dead'
+  showScreen('dead')
+  el.body.classList.remove('playing')
+  mouse.disablePointerLock()
+  clearInput()
+  interaction.endMine()
+  ui.closePanel()
 }
 
 /* ------------------------------------------------------------ 加载世界 */
@@ -252,10 +437,11 @@ async function loadWorld(seed) {
   showScreen('loading')
   el.loadingBar.style.width = '0%'
   el.loadingPct.textContent = '0%'
-  el.loadingNote.textContent = '隆起丘陵 · 灌满湖泊 · 种下橡树'
+  el.loadingNote.textContent = '隆起丘陵 · 埋下矿脉 · 种下橡树'
   await nextFrame()
 
   chunks.detachEntities()
+  mobs.reset()
   world.seed = Number(seed) || 2026
   world.chunks.fill(null)
   world.generate()
@@ -274,7 +460,11 @@ async function loadWorld(seed) {
 
   spawnPoint = world.findSpawn()
   player.spawnAt(spawnPoint)
-  interaction.update()
+  player.revive()
+  lastHealthShown = -1
+  renderHearts()
+  interaction.update(0)
+  mobs.spawn(3)
 }
 
 /* ------------------------------------------------------------ 开始 / 暂停 */
@@ -284,6 +474,10 @@ function startPlaying() {
   state = 'play'
   el.body.classList.add('playing')
   mouse.enablePointerLock()
+  if (!startHintShown) {
+    startHintShown = true
+    showToast('先徒手敲树取木板 · 按 E 打开背包合成工具')
+  }
 }
 
 function pauseGame() {
@@ -293,10 +487,12 @@ function pauseGame() {
   el.body.classList.remove('playing')
   mouse.disablePointerLock()
   clearInput()
+  interaction.endMine()
 }
 
 function resumeGame() {
-  if (state === 'paused' || state === 'help') {
+  if (state === 'paused' || state === 'help' || state === 'inventory') {
+    ui.closePanel()
     showScreen(null)
     state = 'play'
     el.body.classList.add('playing')
@@ -313,6 +509,23 @@ function toggleHelp() {
   } else if (state === 'help') {
     resumeGame()
   }
+}
+
+function openInventory() {
+  if (state !== 'play') return
+  state = 'inventory'
+  ui.openPanel()
+  mouse.disablePointerLock()
+  clearInput()
+  interaction.endMine()
+}
+
+function closeInventory() {
+  if (state !== 'inventory') return
+  ui.closePanel()
+  state = 'play'
+  el.body.classList.add('playing')
+  mouse.enablePointerLock()
 }
 
 function clearInput() {
@@ -336,6 +549,29 @@ function toggleFly() {
   }
 }
 
+/* ------------------------------------------------------------ 攻击 */
+
+function tryAttack() {
+  if (attackCooldown > 0) return false
+  const origin = player.eyePosition
+  const dir = player.getLookDirection()
+  const hit = mobs.pick(origin, dir, 3.8)
+  if (!hit) return false
+  // 中间隔着方块就打不到
+  if (interaction.target && interaction.target.distance < hit.distance) return false
+
+  const mob = hit.mob
+  const stack = inventory.get(ui.activeSlot)
+  const item = stack ? ITEMS.get(stack.id) : null
+  const damage = attackDamage(stack?.id ?? null)
+
+  attackCooldown = 0.42
+  swing()
+  mob.hurt(damage, dir)
+  if (item?.kind === 'weapon') interaction.useDurability(1)
+  return true
+}
+
 /* ------------------------------------------------------------ 输入 */
 
 keyboard.on('keydown', (event) => {
@@ -349,11 +585,14 @@ keyboard.on('keydown', (event) => {
   if (code === 'Space' || key === 32) input.jump = true
   if (code === 'ShiftLeft' || code === 'ShiftRight' || key === 16) input.sprint = true
 
-  if (key >= 49 && key <= 57) selectSlot(key - 49, true)
+  if (state === 'play' && key >= 49 && key <= 57) ui.select(key - 49)
 
   if (state === 'play') {
     if (code === 'KeyF') toggleFly()
     if (code === 'KeyH') toggleHelp()
+    if (code === 'KeyE') openInventory()
+  } else if (state === 'inventory') {
+    if (code === 'KeyE' || code === 'Escape') closeInventory()
   } else if (state === 'help' && (code === 'KeyH' || key === 27)) {
     resumeGame()
   }
@@ -379,20 +618,27 @@ mouse.on('mousemove', (event) => {
 
 mouse.on('mousedown', (event) => {
   if (state !== 'play' || !Mouse.isPointerLocked()) return
-  if (event.button === 0) interaction.breakBlock()
-  else if (event.button === 2) interaction.placeBlock()
-  else if (event.button === 1) {
-    const picked = interaction.pickBlock()
-    if (picked != null) {
-      const slot = HOTBAR.indexOf(picked)
-      if (slot >= 0) selectSlot(slot, true)
+  if (event.button === 0) {
+    // 先看准星前有没有怪物，有就打，没有就开始挖
+    if (!tryAttack()) {
+      interaction.beginMine()
+      swing()
     }
+  } else if (event.button === 2) {
+    interaction.placeBlock()
+  } else if (event.button === 1) {
+    const slot = interaction.pickBlock()
+    if (slot != null && slot >= 0) ui.select(slot)
   }
+})
+
+mouse.on('mouseup', (event) => {
+  if (event.button === 0) interaction.endMine()
 })
 
 mouse.on('mousewheel', (event) => {
   if (state !== 'play') return
-  selectSlot(activeSlot + (event.wheel > 0 ? 1 : -1), true)
+  ui.select(ui.activeSlot + (event.wheel > 0 ? 1 : -1))
 })
 
 mouse.disableContextMenu()
@@ -402,10 +648,10 @@ document.addEventListener('pointerlockchange', () => {
 })
 
 document.addEventListener('keydown', (event) => {
-  if (event.code === 'Escape') {
-    if (state === 'play') pauseGame()
-    else if (state === 'help') resumeGame()
-  }
+  if (event.code !== 'Escape') return
+  if (state === 'play') pauseGame()
+  else if (state === 'help') resumeGame()
+  else if (state === 'inventory') closeInventory()
 })
 
 /* ------------------------------------------------------------ 按钮 */
@@ -414,6 +660,18 @@ document.querySelector('#btn-start').addEventListener('click', () => startPlayin
 document.querySelector('#btn-resume').addEventListener('click', () => resumeGame())
 document.querySelector('#btn-pause-fly').addEventListener('click', () => toggleFly())
 document.querySelector('#btn-help-close').addEventListener('click', () => resumeGame())
+document.querySelector('#btn-inv-close').addEventListener('click', () => closeInventory())
+document.querySelector('#btn-bag').addEventListener('click', () => openInventory())
+document.querySelector('#btn-respawn').addEventListener('click', () => {
+  player.spawnAt(spawnPoint)
+  player.revive()
+  lastHealthShown = -1
+  renderHearts()
+  state = 'play'
+  showScreen(null)
+  el.body.classList.add('playing')
+  mouse.enablePointerLock()
+})
 el.btnHelp.addEventListener('click', () => toggleHelp())
 el.btnFly.addEventListener('click', () => toggleFly())
 document.querySelector('#btn-fullscreen').addEventListener('click', () => {
@@ -425,6 +683,7 @@ async function regenerate() {
   const wasPlaying = state === 'play' || state === 'paused'
   const seed = String(Math.floor(Math.random() * 900000) + 100000)
   el.seed.value = seed
+  ui.closePanel()
   await loadWorld(seed)
   if (wasPlaying) {
     state = 'paused'
@@ -465,13 +724,25 @@ app.on('update', (rawDt) => {
   if (state === 'play') {
     player.update(dt, input)
     player.syncCamera()
-    interaction.update()
+    interaction.update(dt)
+    mobs.update(dt)
+    attackCooldown = Math.max(0, attackCooldown - dt)
+    updateHeld(dt)
   } else if (state === 'menu') {
     orbitCamera(dt)
+    updateHeld(dt)
+  } else {
+    updateHeld(dt)
   }
 
   sky.update(dt, camera.getPosition())
   chunks.process(state === 'play' ? 1 : 0)
+  ui.tick(dt)
+
+  // 挖掘进度条
+  const showMine = state === 'play' && interaction.progress > 0.001
+  el.mineBar.classList.toggle('on', showMine)
+  if (showMine) el.mineBar.firstElementChild.style.width = `${Math.min(100, interaction.progress * 100).toFixed(0)}%`
 
   // 水下滤镜与雾
   if (player.eyeInWater !== wasUnderwater) {
@@ -488,11 +759,24 @@ app.on('update', (rawDt) => {
     }
   }
 
+  // 受伤红屏淡出
+  if (damageFlash > 0) {
+    damageFlash -= dt
+    if (damageFlash <= 0) el.damage.classList.remove('on')
+  }
+
   // 提示文字淡出
   if (labelTimer > 0) {
     labelTimer -= dt
     if (labelTimer <= 0) el.blockLabel.classList.remove('show')
   }
+  if (toastTimer > 0) {
+    toastTimer -= dt
+    if (toastTimer <= 0) el.toast.classList.remove('show')
+  }
+
+  // 生命值
+  if (state === 'play' || state === 'dead') renderHearts()
 
   // HUD
   fpsAccum += dt
@@ -505,6 +789,7 @@ app.on('update', (rawDt) => {
     el.statPos.textContent = `${p.x.toFixed(1)} ${p.y.toFixed(1)} ${p.z.toFixed(1)}`
     el.statChunk.textContent = `${Math.floor(p.x / 16)}, ${Math.floor(p.z / 16)}`
     el.statMode.textContent = player.flying ? '飞行' : player.onGround ? '步行' : '下落'
+    el.statMobs.textContent = String(mobs.aliveCount)
     fpsAccum = 0
     fpsFrames = 0
     hudTimer = 0
@@ -513,7 +798,13 @@ app.on('update', (rawDt) => {
 
 /* ------------------------------------------------------------ 启动 */
 
-buildHotbar()
+// 初始物资（放在手持物品初始化之后，避免背包变更回调读到未初始化的变量）
+for (const entry of STARTER_KIT) inventory.add(entry.id, entry.count)
+
+syncHeld()
+renderHearts()
+const startStack = inventory.get(ui.activeSlot)
+el.blockLabel.textContent = startStack ? (ITEMS.get(startStack.id)?.cn ?? '') : '空手'
 app.start()
 loadWorld(2026).then(() => {
   state = 'menu'
@@ -527,3 +818,7 @@ window.__player = player
 window.__atlas = atlas
 window.__chunks = chunks
 window.__interaction = interaction
+window.__inventory = inventory
+window.__ui = ui
+window.__mobs = mobs
+window.__items = ITEMS

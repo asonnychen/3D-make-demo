@@ -12,8 +12,8 @@
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23234a1d'/%3E%3Crect x='4' y='4' width='11' height='11' fill='%2368a544'/%3E%3Crect x='17' y='4' width='11' height='11' fill='%237c5b33'/%3E%3Crect x='4' y='17' width='11' height='11' fill='%238b6b47'/%3E%3Crect x='17' y='17' width='11' height='11' fill='%239a9a9a'/%3E%3C/svg%3E"
     />
-    <script type="module" crossorigin src="./assets/index-BF-Ywebi.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-DUDLwoOY.css">
+    <script type="module" crossorigin src="./assets/index-Bdw_FlC3.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-BZmAJUu6.css">
   </head>
   <body>
     <div id="app">
@@ -21,6 +21,8 @@
 
       <!-- 水下滤镜 -->
       <div id="underwater" class="underwater"></div>
+      <!-- 受伤红屏 -->
+      <div id="damage" class="damage"></div>
 
       <!-- ============================ HUD ============================ -->
       <div id="hud" class="hud">
@@ -28,24 +30,31 @@
           <i></i><i></i>
         </div>
 
+        <div id="mine-bar" class="mine-bar"><i></i></div>
+
         <div class="stats">
           <div class="stat"><span>FPS</span><b id="stat-fps">--</b></div>
           <div class="stat"><span>坐标</span><b id="stat-pos">0 0 0</b></div>
           <div class="stat"><span>区块</span><b id="stat-chunk">0, 0</b></div>
           <div class="stat"><span>模式</span><b id="stat-mode">步行</b></div>
+          <div class="stat"><span>怪物</span><b id="stat-mobs">0</b></div>
         </div>
 
         <div class="topbar">
+          <button id="btn-bag" class="chip" type="button">背包 <kbd>E</kbd></button>
           <button id="btn-fly" class="chip" type="button">飞行 <kbd>F</kbd></button>
           <button id="btn-help" class="chip" type="button">帮助 <kbd>H</kbd></button>
           <button id="btn-fullscreen" class="chip" type="button">全屏</button>
           <button id="btn-reset" class="chip" type="button">重生成</button>
         </div>
 
+        <div id="toast" class="toast"></div>
+
         <div class="hotbar-wrap">
+          <div id="hearts" class="hearts"></div>
           <div id="block-label" class="block-label">草方块</div>
           <div id="hotbar" class="hotbar"></div>
-          <p class="hotbar-hint">滚轮 / 数字键 1-9 切换 · 左键挖掘 · 右键放置</p>
+          <p class="hotbar-hint">滚轮 / 1-9 切换 · 左键挖掘或攻击 · 右键放置 · E 背包</p>
         </div>
       </div>
 
@@ -56,7 +65,8 @@
           <h1 class="logo">我的世界</h1>
           <p class="logo-sub">MINE&nbsp;WORLD</p>
           <p class="lede">
-            一片程序化生成的方块大陆：草丘、湖泊、森林与雪山。挖开它，再把它重新盖起来。
+            一片程序化生成的方块大陆：草丘、湖泊、森林与雪山。敲树取木、造出工具、挖穿矿脉，
+            再把这座岛重新盖起来 —— 顺便把游荡的僵尸赶回夜色里。
           </p>
 
           <label class="seed-field">
@@ -71,14 +81,43 @@
             <div><kbd>鼠标</kbd><span>环顾</span></div>
             <div><kbd>Space</kbd><span>跳跃 / 上升</span></div>
             <div><kbd>Shift</kbd><span>奔跑 / 下降</span></div>
-            <div><kbd>左键</kbd><span>挖掘</span></div>
-            <div><kbd>右键</kbd><span>放置</span></div>
+            <div><kbd>左键</kbd><span>挖掘 / 攻击</span></div>
+            <div><kbd>右键</kbd><span>放置方块</span></div>
+            <div><kbd>E</kbd><span>背包与合成</span></div>
             <div><kbd>F</kbd><span>飞行</span></div>
             <div><kbd>Esc</kbd><span>暂停</span></div>
           </div>
 
           <p class="footnote">基于 PlayCanvas 2.x · 全部地形与贴图实时程序化生成</p>
         </div>
+      </div>
+
+      <!-- ============================ 背包 ============================ -->
+      <div id="inventory" class="screen hidden">
+        <div class="inv-card">
+          <div class="inv-head">
+            <p class="kicker">INVENTORY &amp; CRAFTING</p>
+            <h2>背包</h2>
+            <p class="inv-sub">左键拿起 / 放下 · 右键拿一半 / 放一个 · Shift+左键快速移动</p>
+          </div>
+          <div class="inv-body">
+            <div class="inv-left">
+              <div id="inv-storage" class="inv-grid"></div>
+              <p class="inv-caption">快捷栏</p>
+              <div id="inv-hotbar" class="inv-grid hot"></div>
+            </div>
+            <aside class="inv-right">
+              <p class="inv-caption">合成</p>
+              <div id="recipe-list" class="recipe-list"></div>
+            </aside>
+          </div>
+          <div class="inv-foot">
+            <span id="inv-hint">选好物品后按 E 或 Esc 关闭背包</span>
+            <button id="btn-inv-close" class="btn ghost" type="button">关闭</button>
+          </div>
+          <div id="craft-hint" class="craft-hint"></div>
+        </div>
+        <div id="inv-drag" class="inv-drag hidden"></div>
       </div>
 
       <!-- ============================ 暂停 ============================ -->
@@ -106,16 +145,31 @@
             <div><kbd>鼠标</kbd><span>转动视角</span></div>
             <div><kbd>Space</kbd><span>跳跃；飞行时上升</span></div>
             <div><kbd>Shift</kbd><span>奔跑；飞行时下降</span></div>
-            <div><kbd>左键</kbd><span>挖掉准星指向的方块</span></div>
+            <div><kbd>左键</kbd><span>挖掉方块 / 攻击怪物</span></div>
             <div><kbd>右键</kbd><span>放下当前方块</span></div>
-            <div><kbd>中键</kbd><span>吸取指向的方块</span></div>
+            <div><kbd>中键</kbd><span>从背包里选中该方块</span></div>
             <div><kbd>1 - 9</kbd><span>切换快捷栏</span></div>
             <div><kbd>滚轮</kbd><span>切换快捷栏</span></div>
+            <div><kbd>E</kbd><span>打开背包与合成</span></div>
             <div><kbd>F</kbd><span>飞行模式开关</span></div>
             <div><kbd>Esc</kbd><span>暂停 / 释放鼠标</span></div>
             <div><kbd>H</kbd><span>打开 / 关闭帮助</span></div>
           </div>
+          <p class="help-note">
+            镐挖石头与矿石、斧砍木头、铲铲土。工具等级越高越快，低等级镐挖不动铁与钻石。
+            矿石直接掉落成品（没有熔炉）；僵尸会掉落腐肉，偶尔还有煤炭与铁锭。
+          </p>
           <button id="btn-help-close" class="btn primary" type="button">知道了</button>
+        </div>
+      </div>
+
+      <!-- ============================ 死亡 ============================ -->
+      <div id="death" class="screen hidden">
+        <div class="pause-card death-card">
+          <p class="kicker">YOU DIED</p>
+          <h2>你倒下了</h2>
+          <p class="lede">僵尸把你拖进了黑暗。背包里的东西都还在。</p>
+          <button id="btn-respawn" class="btn primary" type="button">回到出生点</button>
         </div>
       </div>
 

@@ -168,9 +168,46 @@ export class World {
     }
 
     this.decorate()
+    this.generateOres()
     this.chunks.forEach((c) => {
       if (c) c.dirty = true
     })
+  }
+
+  /** 矿脉：在石头层里随机游走，替换成矿石 */
+  generateOres() {
+    const ores = [
+      { id: BLOCK.COAL_ORE, veins: 12, size: 9, minY: 6, maxY: 48 },
+      { id: BLOCK.IRON_ORE, veins: 7, size: 6, minY: 3, maxY: 36 },
+      { id: BLOCK.DIAMOND_ORE, veins: 1, size: 3, minY: 1, maxY: 16 },
+    ]
+
+    for (let cz = 0; cz < CHUNKS_Z; cz++) {
+      for (let cx = 0; cx < CHUNKS_X; cx++) {
+        const rand = mulberry32(this.seed + cx * 5701 + cz * 3571)
+        for (const ore of ores) {
+          for (let v = 0; v < ore.veins; v++) {
+            let x = cx * CHUNK_SIZE + Math.floor(rand() * CHUNK_SIZE)
+            let z = cz * CHUNK_SIZE + Math.floor(rand() * CHUNK_SIZE)
+            let y = ore.minY + Math.floor(rand() * (ore.maxY - ore.minY))
+            const count = 2 + Math.floor(rand() * ore.size)
+            for (let i = 0; i < count; i++) {
+              if (this.getBlock(x, y, z) === BLOCK.STONE) {
+                this.setBlock(x, y, z, ore.id)
+              }
+              // 随机游走，让矿脉连成一小团
+              const dir = Math.floor(rand() * 6)
+              if (dir === 0) x += 1
+              else if (dir === 1) x -= 1
+              else if (dir === 2) y += 1
+              else if (dir === 3) y -= 1
+              else if (dir === 4) z += 1
+              else z -= 1
+            }
+          }
+        }
+      }
+    }
   }
 
   /** 种树：只长在离海平面不高的草地上 */

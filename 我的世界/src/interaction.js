@@ -1,10 +1,12 @@
 /* ============================================================
-   方块交互：体素射线拾取（DDA）、破坏、放置、选中描边
+   方块交互：体素射线拾取（DDA）、按工具计算挖掘时间、
+   破坏掉落、放置消耗、选中描边
    ============================================================ */
 
 import { Color, Entity, Mesh, MeshInstance, StandardMaterial, BLEND_NORMAL } from 'playcanvas'
 import { REACH } from './config.js'
-import { BLOCK, BLOCK_INFO, isSolid } from './blocks.js'
+import { BLOCK, BLOCK_INFO, isSolid, isBreakable } from './blocks.js'
+import { ITEMS, breakTime, canHarvest, dropOf } from './items.js'
 import { buildSelectionBoxGeometry } from './mesher.js'
 
 /**
@@ -99,18 +101,32 @@ export function createSelectionBox(app, device) {
  * 交互控制器
  */
 export class Interaction {
-  constructor(app, world, player, selection) {
+  constructor(app, world, player, selection, inventory) {
     this.app = app
     this.world = world
     this.player = player
     this.selection = selection
+    this.inventory = inventory
+
     this.target = null
-    this.selectedBlock = BLOCK.GRASS
-    this.onChange = null // 破坏 / 放置后的回调
+    this.activeSlot = 0
+    this.mining = false
+    this.progress = 0
+    this.miningKey = ''
+    this._lastHeld = null
+
+    this.onChange = null // 方块变化（破坏 / 放置）
+    this.onPickup = null // 捡到掉落物
+    this.onToolBreak = null // 工具耐久耗尽
+    this.onSwing = null // 挥手动画
   }
 
-  /** 每帧更新选中方块 */
-  update() {
+  get heldItem() {
+    return this.inventory?.get(this.activeSlot)?.id ?? null
+  }
+
+  /** 每帧更新选中方块与挖掘进度 */
+  update(dt = 0) {
     const origin = this.player.eyePosition
     const dir = this.player.getLookDirection()
     this.target = raycastVoxels(this.world, origin, dir, REACH)
@@ -121,6 +137,52 @@ export class Interaction {
     } else {
       this.selection.enabled = false
     }
+
+    // 换手 / 换目标时进度归零
+    const held = this.heldItem
+    if (held !== this._lastHeld) {
+      this._lastHeld = held
+      this.progress = 0
+      this.miningKey = ''
+    }
+
+    if (!this.mining || !this.target) {
+      this.progress = 0
+      return
+    }
+
+    const id = this.world.getBlock(this.target.x, this.target.y, this.target.z)
+    if (!isBreakable(id)) {
+      this.progress = 0
+      return
+    }
+
+    const key = `${this.target.x},${this.target.y},${this.target.z}`
+    if (key !== this.miningKey) {
+      this.miningKey = key
+      this.progress = 0
+    }
+
+    const time = breakTime(id, held)
+    if (!Number.isFinite(time)) {
+      this.progress = 0
+      return
+    }
+
+    this.progress += dt / time
+    if (this.progress >= 1) {
+      this.progress = 0
+      this.breakBlock()
+    }
+  }
+
+  beginMine() {
+    this.mining = true
+  }
+
+  endMine() {
+    this.mining = false
+    this.progress = 0
   }
 
   /** 破坏 */
@@ -128,39 +190,73 @@ export class Interaction {
     const t = this.target
     if (!t) return false
     const id = this.world.getBlock(t.x, t.y, t.z)
-    if (id === BLOCK.BEDROCK) return false
-    if (this.world.setBlock(t.x, t.y, t.z, BLOCK.AIR)) {
-      this.onChange?.(t.x, t.y, t.z, BLOCK.AIR, id)
-      return true
+    if (!isBreakable(id)) return false
+
+    const held = this.heldItem
+    if (!this.world.setBlock(t.x, t.y, t.z, BLOCK.AIR)) return false
+
+    this.onChange?.(t.x, t.y, t.z, BLOCK.AIR, id)
+
+    // 掉落物
+    if (canHarvest(id, held)) {
+      const drop = dropOf(id)
+      if (drop) {
+        const left = this.inventory.add(drop, 1)
+        this.onPickup?.(drop, 1, left === 0)
+      }
     }
-    return false
+
+    this.useDurability(1)
+    this.onSwing?.()
+    return true
   }
 
-  /** 放置 */
+  /** 放置：消耗快捷栏里的一格方块 */
   placeBlock() {
     const t = this.target
     if (!t) return false
+    const stack = this.inventory.get(this.activeSlot)
+    if (!stack) return false
+    const item = ITEMS.get(stack.id)
+    if (!item || item.kind !== 'block') return false
+
     const x = t.x + t.nx
     const y = t.y + t.ny
     const z = t.z + t.nz
     const existing = this.world.getBlock(x, y, z)
     if (existing !== BLOCK.AIR && existing !== BLOCK.WATER) return false
     if (this.player.intersectsBlock(x, y, z)) return false
-    const id = this.selectedBlock
-    if (this.world.setBlock(x, y, z, id)) {
-      this.onChange?.(x, y, z, id, existing)
+
+    if (this.world.setBlock(x, y, z, item.block)) {
+      this.inventory.consumeSlot(this.activeSlot, 1)
+      this.onChange?.(x, y, z, item.block, existing)
+      this.onSwing?.()
       return true
     }
     return false
   }
 
-  /** 中键取色 */
+  /** 中键取色：只有背包里有这个方块才能选中 */
   pickBlock() {
     const t = this.target
     if (!t) return null
     const id = this.world.getBlock(t.x, t.y, t.z)
     if (!BLOCK_INFO[id] || id === BLOCK.AIR) return null
-    this.selectedBlock = id
-    return id
+    return this.inventory.findSlotOf(`block:${id}`)
+  }
+
+  /** 消耗工具耐久 */
+  useDurability(amount = 1) {
+    const stack = this.inventory.get(this.activeSlot)
+    if (!stack) return
+    const item = ITEMS.get(stack.id)
+    if (item?.durability == null || stack.durability == null) return
+    stack.durability -= amount
+    if (stack.durability <= 0) {
+      this.inventory.set(this.activeSlot, null)
+      this.onToolBreak?.(item)
+    } else {
+      this.inventory.emit()
+    }
   }
 }

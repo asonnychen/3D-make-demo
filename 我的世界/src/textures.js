@@ -30,6 +30,9 @@ export const TILES = [
   'gravel',
   'snow',
   'white',
+  'coal_ore',
+  'iron_ore',
+  'diamond_ore',
 ]
 
 export const TILE_INDEX = Object.fromEntries(TILES.map((name, i) => [name, i]))
@@ -237,6 +240,40 @@ function drawTile(ctx, name, ox, oy) {
     case 'snow': {
       noiseFill(['#f4f8ff', '#e9f1fb', '#ffffff', '#dce7f5'])
       for (let i = 0; i < 12; i++) px(Math.floor(rand() * 16), Math.floor(rand() * 16), '#c9d8ec')
+      break
+    }
+    case 'coal_ore':
+    case 'iron_ore':
+    case 'diamond_ore': {
+      // 石头底 + 矿物斑点
+      noiseFill(['#8d8d8d', '#848484', '#979797', '#7b7b7b'])
+      for (let i = 0; i < 5; i++) {
+        let x = Math.floor(rand() * 16)
+        let y = Math.floor(rand() * 16)
+        const len = 3 + Math.floor(rand() * 5)
+        for (let k = 0; k < len; k++) {
+          px(Math.min(15, x + k), y, '#6f6f6f')
+          if (rand() > 0.6) y = Math.min(15, y + 1)
+        }
+      }
+      const ore =
+        name === 'coal_ore'
+          ? { core: '#1f1f22', mid: '#333338', light: '#4a4a52' }
+          : name === 'iron_ore'
+            ? { core: '#b07a4e', mid: '#d09a6a', light: '#e8bd90' }
+            : { core: '#1d8c8c', mid: '#38d6cf', light: '#9ffaf4' }
+      const blobs = 4
+      for (let b = 0; b < blobs; b++) {
+        const bx = 2 + Math.floor(rand() * 12)
+        const by = 2 + Math.floor(rand() * 12)
+        const size = 2 + Math.floor(rand() * 2)
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            if (x + bx > 15 || y + by > 15) continue
+            px(bx + x, by + y, y === 0 && x === 0 ? ore.light : rand() > 0.35 ? ore.mid : ore.core)
+          }
+        }
+      }
       break
     }
     case 'white':

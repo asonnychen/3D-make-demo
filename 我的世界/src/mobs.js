@@ -122,6 +122,7 @@ export class Mob {
     this.maxHp = MOB_MAX_HP
     this.attackTimer = 0.6
     this.hurtTimer = 0
+    this.stagger = 0
     this.attackAnim = 0
     this.wanderTimer = 0
     this.wanderAngle = Math.random() * Math.PI * 2
@@ -157,10 +158,13 @@ export class Mob {
     this.hp -= amount
     this.hurtTimer = 0.18
     this.material.diffuse = new Color(1, 0.32, 0.3)
+    this.material.update()
     if (fromDir) {
-      this.velocity.x += fromDir.x * 5.5
-      this.velocity.z += fromDir.z * 5.5
+      // 沿攻击方向击退，并在短时间内打断追击，让击退看得出来
+      this.velocity.x = fromDir.x * 7.5
+      this.velocity.z = fromDir.z * 7.5
       this.velocity.y = 3.2
+      this.stagger = 0.5
     }
     if (this.hp <= 0) {
       this.dead = true
@@ -184,7 +188,10 @@ export class Mob {
     // 受击闪红
     if (this.hurtTimer > 0) {
       this.hurtTimer -= dt
-      if (this.hurtTimer <= 0) this.material.diffuse = new Color(1, 1, 1)
+      if (this.hurtTimer <= 0) {
+        this.material.diffuse = new Color(1, 1, 1)
+        this.material.update()
+      }
     }
     if (this.attackAnim > 0) this.attackAnim -= dt
 
@@ -194,10 +201,14 @@ export class Mob {
     const dy = p.y - this.position.y
     const dist = Math.hypot(dx, dz)
 
+    // 被击退后的硬直：这段时间只吃击退速度，不再主动追击
+    const staggered = this.stagger > 0
+    if (staggered) this.stagger -= dt
+
     let moveX = 0
     let moveZ = 0
 
-    const canSee = dist < 18 && Math.abs(dy) < 7 && !player.dead
+    const canSee = !staggered && dist < 18 && Math.abs(dy) < 7 && !player.dead
     this.chasing = canSee && dist > 1.5
 
     if (canSee) {
@@ -211,7 +222,7 @@ export class Mob {
         this.attackAnim = 0.28
         player.hurt(MOB_DAMAGE, this.position)
       }
-    } else {
+    } else if (!staggered) {
       this.wanderTimer -= dt
       if (this.wanderTimer <= 0) {
         this.wanderTimer = 1.6 + Math.random() * 3.2
@@ -247,9 +258,9 @@ export class Mob {
     const targetY = ground + this.velocity.y * dt
     this.position.y += (targetY - this.position.y) * Math.min(1, 16 * dt)
 
-    // 追击时朝玩家，游荡时朝行进方向（模型正面朝 -Z）
-    const face = canSee ? Math.atan2(-dx, -dz) : Math.atan2(-moveX, -moveZ)
-    if (Math.abs(moveX) + Math.abs(moveZ) > 0.01 || canSee) {
+    // 追击 / 被打退时朝玩家，游荡时朝行进方向（模型正面朝 -Z）
+    const face = canSee || staggered ? Math.atan2(-dx, -dz) : Math.atan2(-moveX, -moveZ)
+    if (Math.abs(moveX) + Math.abs(moveZ) > 0.01 || canSee || staggered) {
       this.entity.setEulerAngles(0, (face * 180) / Math.PI, 0)
     }
 

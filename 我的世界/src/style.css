@@ -678,6 +678,8 @@ body.playing .crosshair {
   gap: 22px;
   margin-top: 18px;
   min-height: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
 }
 
 .inv-left {
@@ -831,6 +833,7 @@ body.playing .crosshair {
 
 .inv-foot {
   display: flex;
+  flex: none;
   align-items: center;
   justify-content: space-between;
   gap: 14px;

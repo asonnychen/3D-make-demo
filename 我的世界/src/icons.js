@@ -104,63 +104,69 @@ const WOOD_LIGHT = '#a8814f'
 
 function drawPickaxe(ctx, metal, dark, light) {
   // 柄：从左下伸到镐头中间
-  line(ctx, 4, 13, 9, 3, WOOD, 2)
-  line(ctx, 5, 12, 9, 4, WOOD_LIGHT, 1)
-  // 镐头：中间高、两端下垂的弧形
-  hspan(ctx, 7, 10, 1, metal)
-  hspan(ctx, 5, 12, 2, metal)
-  hspan(ctx, 3, 6, 3, metal)
-  hspan(ctx, 11, 14, 3, metal)
-  hspan(ctx, 2, 4, 4, metal)
+  line(ctx, 4, 14, 10, 3, WOOD, 2)
+  line(ctx, 5, 13, 10, 4, WOOD_LIGHT, 1)
+  // 镐头：中间厚、两端下垂的弧形
+  hspan(ctx, 5, 10, 1, metal)
+  hspan(ctx, 3, 12, 2, metal)
+  hspan(ctx, 2, 13, 3, metal)
+  hspan(ctx, 1, 3, 4, metal)
   hspan(ctx, 13, 15, 4, metal)
-  hspan(ctx, 2, 3, 5, dark)
+  hspan(ctx, 1, 2, 5, dark)
   hspan(ctx, 14, 15, 5, dark)
   // 高光
-  px(ctx, 8, 1, light)
-  px(ctx, 6, 2, light)
-  px(ctx, 12, 2, light)
-  px(ctx, 4, 3, light)
+  px(ctx, 6, 1, light)
+  px(ctx, 7, 1, light)
+  px(ctx, 4, 2, light)
+  px(ctx, 3, 3, light)
 }
 
 function drawAxe(ctx, metal, dark, light) {
-  line(ctx, 4, 13, 10, 5, WOOD, 2)
-  line(ctx, 5, 12, 10, 6, WOOD_LIGHT, 1)
-  // 斧刃
-  hspan(ctx, 9, 12, 2, metal)
-  hspan(ctx, 8, 13, 3, metal)
-  hspan(ctx, 8, 13, 4, metal)
-  hspan(ctx, 8, 12, 5, metal)
-  hspan(ctx, 9, 11, 6, dark)
-  hspan(ctx, 12, 13, 3, light)
-  hspan(ctx, 12, 13, 4, light)
-  px(ctx, 10, 2, light)
+  // 柄：从左下伸到斧头右侧
+  line(ctx, 4, 14, 11, 4, WOOD, 2)
+  line(ctx, 5, 13, 11, 5, WOOD_LIGHT, 1)
+  // 斧头：贴在柄右侧的厚楔形，右边是垂直刃口
+  hspan(ctx, 9, 12, 1, metal)
+  hspan(ctx, 8, 14, 2, metal)
+  hspan(ctx, 8, 15, 3, metal)
+  hspan(ctx, 8, 15, 4, metal)
+  hspan(ctx, 8, 14, 5, metal)
+  hspan(ctx, 9, 13, 6, metal)
+  hspan(ctx, 11, 12, 7, dark)
+  // 刃口高光
+  hspan(ctx, 14, 15, 2, light)
+  hspan(ctx, 14, 15, 3, light)
+  px(ctx, 9, 1, light)
 }
 
 function drawShovel(ctx, metal, dark, light) {
-  line(ctx, 4, 13, 9, 7, WOOD, 2)
-  line(ctx, 5, 12, 9, 8, WOOD_LIGHT, 1)
-  hspan(ctx, 10, 13, 2, metal)
-  hspan(ctx, 9, 14, 3, metal)
-  hspan(ctx, 9, 14, 4, metal)
-  hspan(ctx, 9, 14, 5, metal)
-  hspan(ctx, 10, 13, 6, dark)
-  hspan(ctx, 11, 12, 7, dark)
-  hspan(ctx, 12, 13, 3, light)
-  hspan(ctx, 12, 13, 4, light)
-  px(ctx, 11, 2, light)
+  // 柄：从左下伸到铲面底部
+  line(ctx, 4, 14, 10, 6, WOOD, 2)
+  line(ctx, 5, 13, 10, 7, WOOD_LIGHT, 1)
+  // 铲面：上宽下窄的圆角铲头
+  hspan(ctx, 9, 13, 2, metal)
+  hspan(ctx, 8, 14, 3, metal)
+  hspan(ctx, 8, 14, 4, metal)
+  hspan(ctx, 8, 14, 5, metal)
+  hspan(ctx, 9, 13, 6, metal)
+  hspan(ctx, 10, 12, 7, metal)
+  hspan(ctx, 11, 11, 8, dark)
+  // 高光
+  hspan(ctx, 10, 12, 3, light)
+  hspan(ctx, 10, 12, 4, light)
 }
 
 function drawSword(ctx, metal, dark, light) {
   // 剑身：左下到右上，3px 宽
-  line(ctx, 5, 9, 11, 3, metal, 3)
-  line(ctx, 6, 9, 11, 4, light, 1)
-  px(ctx, 12, 2, metal)
-  px(ctx, 13, 1, dark)
+  line(ctx, 5, 10, 11, 4, metal, 3)
+  line(ctx, 6, 10, 11, 5, light, 1)
+  px(ctx, 12, 3, metal)
+  px(ctx, 13, 2, dark)
   // 护手：与剑身垂直的横条
-  line(ctx, 2, 5, 6, 9, dark, 2)
+  line(ctx, 3, 7, 6, 10, dark, 2)
   // 剑柄
-  line(ctx, 4, 10, 2, 12, WOOD, 2)
-  px(ctx, 1, 13, dark)
+  line(ctx, 4, 11, 2, 13, WOOD, 2)
+  px(ctx, 1, 14, dark)
 }
 
 /* ------------------------------------------------------------ 材料形状 */

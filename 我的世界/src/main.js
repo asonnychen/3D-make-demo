@@ -265,7 +265,8 @@ function createHeldQuad() {
   const mesh = new Mesh(device)
   mesh.setPositions(new Float32Array([-0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0]))
   mesh.setNormals(new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]))
-  mesh.setUvs(0, new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]))
+  // PlayCanvas 的 v=0 在画布顶部，所以底边用 v=1、顶边用 v=0，否则贴图会上下颠倒
+  mesh.setUvs(0, new Float32Array([0, 1, 1, 1, 1, 0, 0, 0]))
   mesh.setIndices(new Uint32Array([0, 1, 2, 0, 2, 3]))
   mesh.update()
   return new MeshInstance(mesh, heldMaterial)
@@ -319,10 +320,11 @@ function swing() {
 }
 
 function updateHeld(dt) {
-  if (swingT > 0) swingT = Math.max(0, swingT - dt / 0.28)
+  if (swingT > 0) swingT = Math.max(0, swingT - dt / 0.3)
   const k = swingT > 0 ? Math.sin((1 - swingT) * Math.PI) : 0
-  heldEntity.setLocalPosition(0.3 - 0.1 * k, -0.23 - 0.1 * k, -0.62 + 0.06 * k)
-  heldEntity.setLocalEulerAngles(-4 - 34 * k, -20 + 14 * k, 4 - 48 * k)
+  // 挥动：向左前方劈下（绕 X 轴前倾 + 轻微侧倾），物品始终留在画面内
+  heldEntity.setLocalPosition(0.3 - 0.12 * k, -0.23 + 0.07 * k, -0.62 - 0.06 * k)
+  heldEntity.setLocalEulerAngles(-4 - 58 * k, -20 + 18 * k, 4 + 20 * k)
 }
 
 interaction.onSwing = swing

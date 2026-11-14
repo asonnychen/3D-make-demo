@@ -245,10 +245,17 @@ inventory.onChange(() => syncHeld())
 
 const heldTextures = new Map()
 
+/** 旋转支点：放在手柄末端，挥动时整把武器绕它转 */
+const heldPivot = new Entity('held-pivot')
+camera.addChild(heldPivot)
+
 const heldEntity = new Entity('held-item')
 heldEntity.addComponent('render', { meshInstances: [] })
-camera.addChild(heldEntity)
-heldEntity.setLocalScale(0.36, 0.36, 0.36)
+heldPivot.addChild(heldEntity)
+// 方片中心相对手柄末端（右下角）的偏移
+const HELD_SCALE = 0.36
+heldEntity.setLocalScale(HELD_SCALE, HELD_SCALE, HELD_SCALE)
+heldEntity.setLocalPosition(-HELD_SCALE / 2, HELD_SCALE / 2, 0)
 heldEntity.enabled = false
 
 const heldMaterial = new StandardMaterial()
@@ -323,9 +330,9 @@ function swing() {
 function updateHeld(dt) {
   if (swingT > 0) swingT = Math.max(0, swingT - dt / 0.3)
   const k = swingT > 0 ? Math.sin((1 - swingT) * Math.PI) : 0
-  // 静止：剑尖朝左上并逆时针偏 15°；挥动：继续逆时针向下劈砍
-  heldEntity.setLocalPosition(0.32 - 0.06 * k, -0.22 + 0.02 * k, -0.62 + 0.04 * k)
-  heldEntity.setLocalEulerAngles(-4 - 35 * k, -20 + 14 * k, 15 + 75 * k)
+  // 支点在手柄末端：静止时剑尖朝左上并逆时针偏 15°，挥动继续逆时针下劈，同时抬手
+  heldPivot.setLocalPosition(0.5 - 0.1 * k, -0.38 + 0.18 * k, -0.62 + 0.06 * k)
+  heldPivot.setLocalEulerAngles(-4 - 20 * k, -20 + 10 * k, 15 + 45 * k)
 }
 
 interaction.onSwing = swing

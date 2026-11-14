@@ -68,7 +68,7 @@ pnpm build:minecraft   # 产出 我的世界/dist/
 
 - 挖掘时准星下方显示进度条，方块被选中时有一圈黑色描边。
 - 挖到东西、工具损坏、背包已满、合成成功都会在屏幕下方弹出提示。
-- 受伤时屏幕边缘泛红；手持物品会显示在画面右下角，挥动时有摆动动画。
+- 受伤时屏幕边缘泛红；手持物品显示在画面右下角，剑尖朝左上，挥动时以手柄末端为支点向下劈砍。
 
 ## 实现要点
 
@@ -77,7 +77,7 @@ pnpm build:minecraft   # 产出 我的世界/dist/
 - **两套材质**：不透明地形一张，玻璃与水共用的半透明材质用图集的 alpha 通道作 `opacityMap`，`BLEND_NORMAL` + 不写深度。
 - **程序化贴图**：`textures.js` 用 Canvas 逐像素画 16×16 图块再拼成 128×128 图集，`PIXELFORMAT_SRGBA8` + 最近邻过滤保持像素感。
 - **程序化物品图标**：`icons.js` 在 16×16 像素网格上画工具 / 武器 / 材料，自动扫描透明边缘补一圈深色描边，再放大到 48×48；方块图标直接裁图集。图标同时用于快捷栏、背包、配方和手持 3D 贴片。
-- **手持物品**：一张贴在相机前方的方片，用物品图标的 Canvas 当 `diffuseMap + opacityMap`，`alphaTest` 抠掉透明区域，挥动时做位移与欧拉角插值。
+- **手持物品**：一张贴在相机前方的方片，用物品图标的 Canvas 当 `diffuseMap + opacityMap`，`alphaTest` 抠掉透明区域；方片挂在手柄末端的支点上，挥动时绕支点旋转而不是绕图片中心。
 - **僵尸**：几何只算一次，每只怪物各建一个 `Mesh`（共享网格会被 `MeshInstance.destroy()` 连带销毁）；材质按怪物独立，受击时把 `diffuse` 调红。
 - **性能**：区块按帧分摊构建，加载时每帧 2 个区块；运行期每帧最多重建 1 个脏区块。实测 100 个区块约 5 万三角形 + 4 只僵尸，桌面 60 fps。
 - **PlayCanvas 用法**：引擎直连（`new Application(canvas, { mouse, keyboard })`），全部实体用 `addComponent('render', { meshInstances })` 手工组装，`Mesh.setPositions / setUvs / setColors / setIndices` 生成几何，`app.on('update', dt => …)` 驱动主循环。

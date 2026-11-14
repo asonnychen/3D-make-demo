@@ -41,10 +41,10 @@ for (const info of BLOCK_INFO) {
 
 /** 工具等级：挖掘速度倍率、耐久、攻击伤害 */
 const TOOL_MATERIALS = [
-  { tier: 1, key: 'wood', cn: '木', color: '#c49a63', dark: '#7a5a34', light: '#e6c391', speed: 2, durability: 60 },
-  { tier: 2, key: 'stone', cn: '石', color: '#a6a6a6', dark: '#6f6f6f', light: '#d6d6d6', speed: 4, durability: 132 },
-  { tier: 3, key: 'iron', cn: '铁', color: '#dbe0e6', dark: '#8b949c', light: '#ffffff', speed: 6, durability: 250 },
-  { tier: 4, key: 'diamond', cn: '钻石', color: '#6fe4d8', dark: '#2fa79c', light: '#b6fff8', speed: 8, durability: 900 },
+  { tier: 1, key: 'wood', cn: '木', speed: 2, durability: 60 },
+  { tier: 2, key: 'stone', cn: '石', speed: 4, durability: 132 },
+  { tier: 3, key: 'iron', cn: '铁', speed: 6, durability: 250 },
+  { tier: 4, key: 'diamond', cn: '钻石', speed: 8, durability: 900 },
 ]
 
 const TOOL_TYPES = [
@@ -71,9 +71,6 @@ for (const type of TOOL_TYPES) {
         tier: mat.tier,
         speed: mat.speed,
         durability: mat.durability,
-        color: mat.color,
-        dark: mat.dark,
-        light: mat.light,
         mining: type.speed,
       },
       damage: type.damage(mat.tier),

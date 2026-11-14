@@ -248,7 +248,7 @@ const heldTextures = new Map()
 const heldEntity = new Entity('held-item')
 heldEntity.addComponent('render', { meshInstances: [] })
 camera.addChild(heldEntity)
-heldEntity.setLocalScale(0.4, 0.4, 0.4)
+heldEntity.setLocalScale(0.36, 0.36, 0.36)
 heldEntity.enabled = false
 
 const heldMaterial = new StandardMaterial()
@@ -265,9 +265,9 @@ function createHeldQuad() {
   const mesh = new Mesh(device)
   mesh.setPositions(new Float32Array([-0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0]))
   mesh.setNormals(new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]))
-  // 方片纹理：PlayCanvas 从画布上传的贴图与顶点 UV 的对应关系会让图 180° 翻转，
-  // 这里把 u、v 同时取反，让剑尖朝右上、护手在左下，与背包里的图标一致
-  mesh.setUvs(0, new Float32Array([1, 0, 0, 0, 0, 1, 1, 1]))
+  // 方片纹理：让剑尖朝左上、手柄在右下（与背包图标左右相反），
+  // UV 依次对应左下 / 右下 / 右上 / 左上四个顶点
+  mesh.setUvs(0, new Float32Array([1, 1, 0, 1, 0, 0, 1, 0]))
   mesh.setIndices(new Uint32Array([0, 1, 2, 0, 2, 3]))
   mesh.update()
   return new MeshInstance(mesh, heldMaterial)
@@ -323,9 +323,9 @@ function swing() {
 function updateHeld(dt) {
   if (swingT > 0) swingT = Math.max(0, swingT - dt / 0.3)
   const k = swingT > 0 ? Math.sin((1 - swingT) * Math.PI) : 0
-  // 挥动：以右下为支点顺时针翻腕劈下（剑尖由右上扫向下方）
+  // 静止：剑尖朝左上并逆时针偏 15°；挥动：继续逆时针向下劈砍
   heldEntity.setLocalPosition(0.32 - 0.06 * k, -0.22 + 0.02 * k, -0.62 + 0.04 * k)
-  heldEntity.setLocalEulerAngles(-4 - 35 * k, -20 + 14 * k, 4 - 75 * k)
+  heldEntity.setLocalEulerAngles(-4 - 35 * k, -20 + 14 * k, 15 + 75 * k)
 }
 
 interaction.onSwing = swing

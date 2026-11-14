@@ -99,13 +99,17 @@ function outlined(draw) {
 
 /* ------------------------------------------------------------ 工具形状 */
 
-const WOOD = '#8a6a46'
-const WOOD_LIGHT = '#a8814f'
+/** 统一配色：柄是浅蓝色，镐头 / 斧刃 / 铲面 / 剑身是银白色 */
+const HANDLE = '#9ed0f5'
+const HANDLE_LIGHT = '#d4ecff'
+const METAL = '#e8eef5'
+const METAL_DARK = '#a4aeba'
+const METAL_LIGHT = '#ffffff'
 
 function drawPickaxe(ctx, metal, dark, light) {
   // 柄：从左下伸到镐头中间
-  line(ctx, 4, 14, 10, 3, WOOD, 2)
-  line(ctx, 5, 13, 10, 4, WOOD_LIGHT, 1)
+  line(ctx, 4, 14, 10, 3, HANDLE, 2)
+  line(ctx, 5, 13, 10, 4, HANDLE_LIGHT, 1)
   // 镐头：中间厚、两端下垂的弧形
   hspan(ctx, 5, 10, 1, metal)
   hspan(ctx, 3, 12, 2, metal)
@@ -123,8 +127,8 @@ function drawPickaxe(ctx, metal, dark, light) {
 
 function drawAxe(ctx, metal, dark, light) {
   // 柄：从左下伸到斧头右侧
-  line(ctx, 4, 14, 11, 4, WOOD, 2)
-  line(ctx, 5, 13, 11, 5, WOOD_LIGHT, 1)
+  line(ctx, 4, 14, 11, 4, HANDLE, 2)
+  line(ctx, 5, 13, 11, 5, HANDLE_LIGHT, 1)
   // 斧头：贴在柄右侧的厚楔形，右边是垂直刃口
   hspan(ctx, 9, 12, 1, metal)
   hspan(ctx, 8, 14, 2, metal)
@@ -141,8 +145,8 @@ function drawAxe(ctx, metal, dark, light) {
 
 function drawShovel(ctx, metal, dark, light) {
   // 柄：从左下伸到铲面底部
-  line(ctx, 4, 14, 10, 6, WOOD, 2)
-  line(ctx, 5, 13, 10, 7, WOOD_LIGHT, 1)
+  line(ctx, 4, 14, 10, 6, HANDLE, 2)
+  line(ctx, 5, 13, 10, 7, HANDLE_LIGHT, 1)
   // 铲面：上宽下窄的圆角铲头
   hspan(ctx, 9, 13, 2, metal)
   hspan(ctx, 8, 14, 3, metal)
@@ -165,15 +169,15 @@ function drawSword(ctx, metal, dark, light) {
   // 护手：与剑身垂直的横条
   line(ctx, 3, 7, 6, 10, dark, 2)
   // 剑柄
-  line(ctx, 4, 11, 2, 13, WOOD, 2)
+  line(ctx, 4, 11, 2, 13, HANDLE, 2)
   px(ctx, 1, 14, dark)
 }
 
 /* ------------------------------------------------------------ 材料形状 */
 
 function drawStick(ctx) {
-  line(ctx, 4, 12, 11, 5, WOOD, 2)
-  line(ctx, 4, 12, 11, 5, WOOD_LIGHT, 1)
+  line(ctx, 4, 12, 11, 5, HANDLE, 2)
+  line(ctx, 4, 12, 11, 5, HANDLE_LIGHT, 1)
 }
 
 function drawCoal(ctx) {
@@ -268,16 +272,14 @@ export function createIcons(atlas) {
     if (item.kind === 'block') {
       canvas = blockCanvas(item.block)
     } else if (item.tool) {
-      const color = item.tool.color
-      const dark = item.tool.dark
-      const light = item.tool.light
       const draw = {
         pickaxe: drawPickaxe,
         axe: drawAxe,
         shovel: drawShovel,
         sword: drawSword,
       }[item.tool.type]
-      canvas = outlined((ctx) => draw(ctx, color, dark, light))
+      // 所有档位统一：银白色金属部分 + 浅蓝色手柄
+      canvas = outlined((ctx) => draw(ctx, METAL, METAL_DARK, METAL_LIGHT))
     } else {
       const draw = {
         stick: drawStick,

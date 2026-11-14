@@ -248,7 +248,7 @@ const heldTextures = new Map()
 const heldEntity = new Entity('held-item')
 heldEntity.addComponent('render', { meshInstances: [] })
 camera.addChild(heldEntity)
-heldEntity.setLocalScale(0.26, 0.26, 0.26)
+heldEntity.setLocalScale(0.4, 0.4, 0.4)
 heldEntity.enabled = false
 
 const heldMaterial = new StandardMaterial()
@@ -265,8 +265,9 @@ function createHeldQuad() {
   const mesh = new Mesh(device)
   mesh.setPositions(new Float32Array([-0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0]))
   mesh.setNormals(new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]))
-  // PlayCanvas 的 v=0 在画布顶部，所以底边用 v=1、顶边用 v=0，否则贴图会上下颠倒
-  mesh.setUvs(0, new Float32Array([0, 1, 1, 1, 1, 0, 0, 0]))
+  // 方片纹理：PlayCanvas 从画布上传的贴图与顶点 UV 的对应关系会让图 180° 翻转，
+  // 这里把 u、v 同时取反，让剑尖朝右上、护手在左下，与背包里的图标一致
+  mesh.setUvs(0, new Float32Array([1, 0, 0, 0, 0, 1, 1, 1]))
   mesh.setIndices(new Uint32Array([0, 1, 2, 0, 2, 3]))
   mesh.update()
   return new MeshInstance(mesh, heldMaterial)

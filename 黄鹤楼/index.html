@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#101820" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23a8342a'/%3E%3Ctext x='32' y='46' font-size='38' text-anchor='middle' fill='%23f7e7c6' font-family='serif'%3E%E9%B9%A4%3C/text%3E%3C/svg%3E"
+    />
+    <title>黄鹤楼 · 可漫游三维楼阁</title>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <div id="ui">
+      <!-- 标题 -->
+      <header id="brand">
+        <div class="brand-seal">鹤</div>
+        <div>
+          <h1>黄鹤楼</h1>
+          <p>蛇山 · 长江 · 五层楼阁</p>
+        </div>
+      </header>
+
+      <!-- 右上按钮 -->
+      <div id="actions">
+        <button id="btnNight" class="ui-btn" aria-pressed="false">切换夜晚</button>
+        <button id="btnView" class="ui-btn">视角：第一人称</button>
+      </div>
+
+      <!-- 操作提示 -->
+      <div id="hint">
+        <span><b>WASD</b> / 方向键移动</span>
+        <span><b>拖拽</b> 转视角</span>
+        <span><b>空格</b> 跳跃</span>
+        <span><b>点击</b> 展品看介绍</span>
+      </div>
+
+      <!-- 准星 -->
+      <div id="crosshair"></div>
+
+      <!-- 移动端摇杆 -->
+      <div id="joystick" aria-label="移动摇杆">
+        <div id="stick"></div>
+      </div>
+      <button id="btnJump" aria-label="跳跃">跳</button>
+
+      <!-- 展品介绍卡片 -->
+      <div id="card" role="dialog" aria-live="polite">
+        <div class="card-head">
+          <span id="cardTag">展品</span>
+          <h2 id="cardTitle">标题</h2>
+          <button id="cardClose" aria-label="关闭">×</button>
+        </div>
+        <p id="cardText"></p>
+      </div>
+
+      <!-- 加载层 -->
+      <div id="loading">
+        <div class="spinner"></div>
+        <p>正在营造黄鹤楼…</p>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

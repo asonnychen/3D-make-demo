@@ -16,7 +16,9 @@
     "dev:village": "cd 森林湖畔村庄 && vite",
     "build:village": "cd 森林湖畔村庄 && vite build",
     "dev:minecraft": "cd 我的世界 && vite",
-    "build:minecraft": "cd 我的世界 && vite build"
+    "build:minecraft": "cd 我的世界 && vite build",
+    "dev:yellowcrane": "cd 黄鹤楼 && vite",
+    "build:yellowcrane": "cd 黄鹤楼 && vite build"
   },
   "dependencies": {
     "playcanvas": "^2.24.1",

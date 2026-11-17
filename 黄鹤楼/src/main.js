@@ -127,12 +127,51 @@ function onToggleView() {
 btnView.addEventListener('click', onToggleView);
 updateViewLabel();
 
-// ---------------- 跳跃 ----------------
+// ---------------- 飞行模式 ----------------
+const btnFly = document.getElementById('btnFly');
 const btnJump = document.getElementById('btnJump');
+const btnDown = document.getElementById('btnDown');
+
+function updateFlyLabel() {
+  btnFly.textContent = player.flying ? '飞行：开' : '飞行：关';
+  btnFly.setAttribute('aria-pressed', String(player.flying));
+  btnJump.textContent = player.flying ? '升' : '跳';
+  document.body.classList.toggle('flying', player.flying);
+}
+function onToggleFly() {
+  player.toggleFly();
+  updateFlyLabel();
+}
+btnFly.addEventListener('click', onToggleFly);
+updateFlyLabel();
+
+// ---------------- 跳跃 / 升降 ----------------
 function onJump() {
   player.jumpQueued = true;
 }
+function onJumpDown(e) {
+  player.flyUp = true;
+}
+function onJumpUp() {
+  player.flyUp = false;
+}
 btnJump.addEventListener('click', onJump);
+btnJump.addEventListener('pointerdown', onJumpDown);
+btnJump.addEventListener('pointerup', onJumpUp);
+btnJump.addEventListener('pointercancel', onJumpUp);
+btnJump.addEventListener('pointerleave', onJumpUp);
+
+function onDownStart(e) {
+  e.preventDefault();
+  player.flyDown = true;
+}
+function onDownEnd() {
+  player.flyDown = false;
+}
+btnDown.addEventListener('pointerdown', onDownStart);
+btnDown.addEventListener('pointerup', onDownEnd);
+btnDown.addEventListener('pointercancel', onDownEnd);
+btnDown.addEventListener('pointerleave', onDownEnd);
 
 // ---------------- 移动端摇杆 ----------------
 const joyEl = document.getElementById('joystick');
@@ -223,6 +262,7 @@ renderer.domElement.addEventListener('pointerup', onCanvasPointerUp);
 function onKeyDown(e) {
   if (e.code === 'KeyN') onToggleNight();
   if (e.code === 'KeyV') onToggleView();
+  if (e.code === 'KeyF') onToggleFly();
 }
 window.addEventListener('keydown', onKeyDown);
 
@@ -277,7 +317,16 @@ function disposeAll() {
   window.removeEventListener('beforeunload', disposeAll);
   btnNight.removeEventListener('click', onToggleNight);
   btnView.removeEventListener('click', onToggleView);
+  btnFly.removeEventListener('click', onToggleFly);
   btnJump.removeEventListener('click', onJump);
+  btnJump.removeEventListener('pointerdown', onJumpDown);
+  btnJump.removeEventListener('pointerup', onJumpUp);
+  btnJump.removeEventListener('pointercancel', onJumpUp);
+  btnJump.removeEventListener('pointerleave', onJumpUp);
+  btnDown.removeEventListener('pointerdown', onDownStart);
+  btnDown.removeEventListener('pointerup', onDownEnd);
+  btnDown.removeEventListener('pointercancel', onDownEnd);
+  btnDown.removeEventListener('pointerleave', onDownEnd);
   joyEl.removeEventListener('pointerdown', onJoyDown);
   joyEl.removeEventListener('pointermove', onJoyMove);
   joyEl.removeEventListener('pointerup', endJoy);

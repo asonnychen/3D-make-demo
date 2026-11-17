@@ -32,6 +32,9 @@ export class Player {
     this.keys = new Set();
     this.joy = { x: 0, y: 0 };
     this.jumpQueued = false;
+    this.flying = false;
+    this.flyUp = false;
+    this.flyDown = false;
 
     this.dragging = false;
     this.pointerId = null;
@@ -191,6 +194,23 @@ export class Player {
     return this.mode;
   }
 
+  /** 切换飞行模式：关闭重力，空格上升、Shift 下降 */
+  toggleFly() {
+    this.flying = !this.flying;
+    this.vy = 0;
+    this.jumpQueued = false;
+    this.flyUp = false;
+    this.flyDown = false;
+    if (this.flying) {
+      // 起飞时略微离地，避免贴着地面
+      const s = this.world.getSupportY(this.feet.x, this.feet.z, this.feet.y + 0.6);
+      this.feet.y = Math.max(this.feet.y, s + 0.6);
+      this.grounded = false;
+    }
+    this.updateCamera(0);
+    return this.flying;
+  }
+
   /** 把摇杆与键盘合成为移动向量 */
   getMove() {
     let x = this.joy.x;
@@ -243,8 +263,9 @@ export class Player {
     if (dt <= 0) return;
     const move = this.getMove();
 
-    // 水平移动
-    const speed = this.keys.has('ShiftLeft') || this.keys.has('ShiftRight') ? 6.2 : 3.7;
+    // 水平移动：飞行时更快，且不做墙体碰撞（自由观察）
+    const sprint = this.keys.has('ShiftLeft') || this.keys.has('ShiftRight');
+    const speed = this.flying ? 9 : sprint ? 6.2 : 3.7;
     this.tmpForward.set(-Math.sin(this.yaw), 0, -Math.cos(this.yaw));
     this.tmpRight.set(Math.cos(this.yaw), 0, -Math.sin(this.yaw));
     this.tmpDir
@@ -252,33 +273,53 @@ export class Player {
       .multiplyScalar(move.z)
       .addScaledVector(this.tmpRight, move.x);
 
-    if (this.tmpDir.lengthSq() > 1e-6) {
+    const moving = this.tmpDir.lengthSq() > 1e-6;
+    if (moving) {
       this.tmpDir.normalize();
       this.feet.x += this.tmpDir.x * speed * dt;
       this.feet.z += this.tmpDir.z * speed * dt;
-      this.resolveCollisions();
+      if (!this.flying) this.resolveCollisions();
     }
 
-    this.updateAvatar(dt, this.tmpDir.lengthSq() > 1e-6);
+    this.updateAvatar(dt, moving && !this.flying);
 
-    // 跳跃
-    if (this.jumpQueued && this.grounded) {
-      this.vy = JUMP_SPEED;
-      this.grounded = false;
-    }
-    this.jumpQueued = false;
+    if (this.flying) {
+      // 飞行：空格 / 摇杆上升，Shift / C / 下降按钮下降
+      let v = 0;
+      if (this.keys.has('Space') || this.flyUp) v += 1;
+      if (sprint || this.keys.has('KeyC') || this.flyDown) v -= 1;
+      this.feet.y += v * 7.5 * dt;
 
-    // 重力与落地
-    this.vy = Math.max(-MAX_FALL, this.vy - GRAVITY * dt);
-    this.feet.y += this.vy * dt;
+      // 限制在世界范围内，并且不钻到地面 / 楼板以下
+      this.feet.x = THREE.MathUtils.clamp(this.feet.x, -230, 230);
+      this.feet.z = THREE.MathUtils.clamp(this.feet.z, -230, 230);
+      this.feet.y = Math.min(this.feet.y, 150);
+      const support = this.world.getSupportY(this.feet.x, this.feet.z, this.feet.y + 0.6);
+      if (this.feet.y < support + 0.3) this.feet.y = support + 0.3;
 
-    const support = this.world.getSupportY(this.feet.x, this.feet.z, this.feet.y + 0.55);
-    if (this.vy <= 0 && this.feet.y - support <= 0.7) {
-      this.feet.y = support;
       this.vy = 0;
-      this.grounded = true;
-    } else {
       this.grounded = false;
+      this.jumpQueued = false;
+    } else {
+      // 跳跃
+      if (this.jumpQueued && this.grounded) {
+        this.vy = JUMP_SPEED;
+        this.grounded = false;
+      }
+      this.jumpQueued = false;
+
+      // 重力与落地
+      this.vy = Math.max(-MAX_FALL, this.vy - GRAVITY * dt);
+      this.feet.y += this.vy * dt;
+
+      const support = this.world.getSupportY(this.feet.x, this.feet.z, this.feet.y + 0.55);
+      if (this.vy <= 0 && this.feet.y - support <= 0.7) {
+        this.feet.y = support;
+        this.vy = 0;
+        this.grounded = true;
+      } else {
+        this.grounded = false;
+      }
     }
 
     // 掉出世界时复位

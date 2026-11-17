@@ -553,6 +553,9 @@ export function buildTower(mats) {
     stairRail(stairRailBatch, xStart, xL0, zB + laneW, sy1, sy0 + half, colliders);
     // 平台外侧扶手
     railLine(stairRailBatch, xEnd, zA, xEnd, zB + laneW, sy0 + half, colliders);
+    // 平台两侧扶手：补齐两跑之间的平台缺口
+    railLine(stairRailBatch, xL0, zA, xEnd, zA, sy0 + half, colliders);
+    railLine(stairRailBatch, xL0, zB + laneW, xEnd, zB + laneW, sy0 + half, colliders);
 
     // 上层洞口护栏（B 跑出口留空）
     const h = stairHole(i + 1);

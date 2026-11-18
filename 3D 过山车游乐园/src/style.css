@@ -1,0 +1,217 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+  font-family: "Microsoft YaHei UI", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  --ink: #101a24;
+  --cream: #fff7df;
+  --orange: #ff6b35;
+  --mint: #72e6d1;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100%;
+  overflow: hidden;
+  background: var(--ink);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--mint);
+  outline-offset: 2px;
+}
+
+#scene canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.preset-button,
+.camera-button,
+.action-button {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 247, 223, 0.78);
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.preset-button:hover,
+.camera-button:hover,
+.action-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(114, 230, 209, 0.38);
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff7df;
+}
+
+.preset-button {
+  display: flex;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.035);
+  padding: 0.65rem 0.8rem;
+  text-align: left;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.preset-button small {
+  color: rgba(255, 255, 255, 0.35);
+  font-family: Consolas, monospace;
+  font-size: 0.56rem;
+  letter-spacing: 0.08em;
+}
+
+.preset-button.is-active {
+  border-color: rgba(255, 107, 53, 0.65);
+  background: linear-gradient(100deg, rgba(255, 107, 53, 0.23), rgba(255, 107, 53, 0.07));
+  color: #fff7df;
+  box-shadow: inset 3px 0 0 var(--orange);
+}
+
+.camera-button {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: 0.72rem;
+  background: rgba(255, 255, 255, 0.035);
+  padding: 0.62rem 0.68rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.camera-button span {
+  color: var(--mint);
+  font-family: Consolas, monospace;
+  font-size: 0.58rem;
+}
+
+.camera-button.is-active {
+  border-color: rgba(114, 230, 209, 0.55);
+  background: rgba(114, 230, 209, 0.12);
+  color: #fff7df;
+}
+
+.action-button {
+  display: flex;
+  min-height: 2.55rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.035);
+  padding: 0.6rem 0.55rem;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.action-button span {
+  color: var(--mint);
+  font-size: 1rem;
+}
+
+.action-button.is-active,
+.action-button[aria-pressed="true"] {
+  border-color: rgba(255, 107, 53, 0.58);
+  background: rgba(255, 107, 53, 0.13);
+}
+
+.action-button--edit.is-active span {
+  color: var(--orange);
+}
+
+.metric {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.045);
+  padding: 0.7rem 0.65rem 0.62rem;
+}
+
+.metric span {
+  grid-column: 1 / -1;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.metric strong {
+  overflow: hidden;
+  color: #fff7df;
+  font-family: Consolas, "SFMono-Regular", monospace;
+  font-size: clamp(1rem, 4.8vw, 1.5rem);
+  line-height: 1.1;
+}
+
+.metric small {
+  color: var(--mint);
+  font-family: Consolas, monospace;
+  font-size: 0.56rem;
+}
+
+#editor-panel.is-open {
+  pointer-events: auto;
+  transform: translateX(0) !important;
+  translate: 0 !important;
+  opacity: 1 !important;
+}
+
+#g-bar {
+  margin-left: 0;
+  transform: translateX(0);
+}
+
+.is-night #scene canvas {
+  filter: saturate(1.08) contrast(1.03);
+}
+
+@media (max-width: 767px) {
+  #control-dock {
+    max-height: calc(100dvh - 8rem);
+  }
+
+  #control-dock.is-collapsed {
+    display: none;
+  }
+
+  #hud {
+    padding: 0.65rem;
+  }
+
+  #hud .metric {
+    padding: 0.55rem 0.45rem;
+  }
+
+  #dispatch-button {
+    padding-block: 0.7rem;
+  }
+}
+
+@media (max-height: 660px) and (min-width: 768px) {
+  #control-dock {
+    max-height: calc(100dvh - 1.5rem);
+  }
+}

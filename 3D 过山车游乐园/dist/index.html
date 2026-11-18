@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#101a24" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23ff6b35'/%3E%3Cpath d='M17 45V19h8l14 17V19h8v26h-8L25 28v17z' fill='%23fff7df'/%3E%3C/svg%3E" />
+    <meta name="description" content="可实时编辑轨道并第一人称试乘的程序化 3D 过山车游乐园" />
+    <title>3D 过山车游乐园 · Neon Circuit</title>
+    <script type="module" crossorigin src="/assets/index-Dol8ka0C.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BNAfeUEi.css">
+  </head>
+  <body>
+    <main id="app" class="relative h-dvh w-screen overflow-hidden bg-[#101a24] text-[#f7f1df]">
+      <div id="scene" class="absolute inset-0" aria-label="3D 过山车游乐园场景"></div>
+      <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,transparent_0%,rgba(7,13,19,0.18)_72%,rgba(7,13,19,0.48)_100%)]"></div>
+
+      <header class="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between p-3 sm:p-5">
+        <div class="pointer-events-auto flex items-center gap-3 rounded-[1.25rem] border border-white/15 bg-[#101a24]/80 px-3 py-2.5 shadow-[0_16px_50px_rgba(0,0,0,0.28)] backdrop-blur-xl sm:px-4">
+          <div class="grid h-9 w-9 place-items-center rounded-xl bg-[#ff6b35] text-lg font-black text-white shadow-[inset_0_-3px_0_rgba(0,0,0,0.18)]">N</div>
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-[0.24em] text-[#72e6d1]">Neon Circuit</p>
+            <h1 class="text-sm font-black tracking-wide text-[#fff7df] sm:text-base">3D 过山车游乐园</h1>
+          </div>
+        </div>
+        <div id="status-pill" class="pointer-events-auto hidden items-center gap-2 rounded-full border border-white/15 bg-[#101a24]/75 px-3 py-2 text-xs font-bold text-[#fff7df] backdrop-blur-xl sm:flex">
+          <span class="h-2 w-2 rounded-full bg-[#72e6d1] shadow-[0_0_12px_#72e6d1]"></span>
+          <span id="status-text">轨道已就绪</span>
+        </div>
+      </header>
+
+      <section class="pointer-events-none absolute inset-y-0 left-0 z-20 flex items-center p-3 sm:p-5" aria-label="主控制面板">
+        <div id="control-dock" class="pointer-events-auto max-h-[calc(100dvh-2.5rem)] w-[min(19rem,calc(100vw-1.5rem))] overflow-y-auto rounded-[1.35rem] border border-white/15 bg-[#101a24]/82 p-3 shadow-[0_22px_70px_rgba(0,0,0,0.34)] backdrop-blur-xl sm:p-4">
+          <div class="mb-3 flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff8b5f]">Control Deck</p>
+              <h2 class="text-sm font-black">调度控制台</h2>
+            </div>
+            <button id="dock-toggle" class="grid h-9 w-9 place-items-center rounded-lg border border-white/10 bg-white/5 text-lg transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[#72e6d1]" aria-label="折叠控制台">−</button>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <p class="mb-2 text-[11px] font-bold tracking-[0.16em] text-white/55">轨道预设</p>
+              <div id="preset-buttons" class="grid grid-cols-1 gap-2">
+                <button class="preset-button is-active" data-preset="classic"><span>经典大回环</span><small>CLASSIC LOOP</small></button>
+                <button class="preset-button" data-preset="canyon"><span>峡谷螺旋王</span><small>CANYON HELIX</small></button>
+                <button class="preset-button" data-preset="devil"><span>魔鬼双环</span><small>DEVIL TWIN</small></button>
+              </div>
+            </div>
+
+            <div class="h-px bg-white/10"></div>
+
+            <div>
+              <p class="mb-2 text-[11px] font-bold tracking-[0.16em] text-white/55">视角</p>
+              <div id="camera-buttons" class="grid grid-cols-2 gap-2">
+                <button class="camera-button is-active" data-camera="first"><span>01</span>第一人称</button>
+                <button class="camera-button" data-camera="chase"><span>02</span>车尾跟随</button>
+                <button class="camera-button" data-camera="station"><span>03</span>站台仰视</button>
+                <button class="camera-button" data-camera="orbit"><span>04</span>自由鸟瞰</button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <button id="edit-button" class="action-button action-button--edit" aria-pressed="false"><span>◎</span>编辑轨道</button>
+              <button id="night-button" class="action-button" aria-pressed="false"><span>☾</span>昼夜切换</button>
+              <button id="sound-button" class="action-button" aria-pressed="false"><span>♪</span>音效关闭</button>
+              <button id="reset-button" class="action-button" aria-pressed="false"><span>↺</span>复位视角</button>
+            </div>
+          </div>
+
+          <div class="mt-4 rounded-xl border border-[#72e6d1]/20 bg-[#72e6d1]/8 p-3 text-[11px] leading-5 text-white/65">
+            <strong class="text-[#72e6d1]">操作提示</strong><br />
+            鼠标拖动轨道控制球调整位置；按住 Shift 拖动调整高度；滚轮调整侧倾角。
+          </div>
+        </div>
+      </section>
+
+      <aside id="editor-panel" class="pointer-events-none absolute right-0 top-0 z-30 h-full w-[min(20rem,calc(100vw-1.5rem))] translate-x-[110%] border-l border-white/15 bg-[#101a24]/92 p-4 pt-20 opacity-0 shadow-[-24px_0_70px_rgba(0,0,0,0.28)] backdrop-blur-xl transition-all duration-300 sm:p-5 sm:pt-24" aria-label="轨道编辑器">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-[0.22em] text-[#ff8b5f]">Track Forge</p>
+            <h2 class="mt-1 text-lg font-black">轨道控制点</h2>
+          </div>
+          <button id="editor-close" class="grid h-9 w-9 place-items-center rounded-lg border border-white/10 bg-white/5 text-lg transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[#ff8b5f]" aria-label="关闭轨道编辑器">×</button>
+        </div>
+
+        <div class="mt-5 rounded-2xl border border-white/10 bg-white/[0.045] p-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-white/55">当前控制点</span>
+            <span id="selected-index" class="rounded-md bg-[#ff6b35] px-2 py-1 text-[10px] font-black">#01</span>
+          </div>
+          <p id="selected-position" class="mt-3 font-mono text-xs text-[#72e6d1]">X 0.0 · Y 0.0 · Z 0.0</p>
+          <label class="mt-5 block text-xs font-bold" for="roll-slider">
+            <span class="flex items-center justify-between"><span>轨道侧倾角</span><output id="roll-value" class="font-mono text-[#ff8b5f]">0°</output></span>
+            <input id="roll-slider" class="mt-2 w-full accent-[#ff6b35]" type="range" min="-75" max="75" value="0" step="1" />
+          </label>
+          <div class="mt-4 grid grid-cols-3 gap-2 text-center text-[10px] text-white/45">
+            <span>前移<br /><b class="text-white/80">拖动球体</b></span>
+            <span>升降<br /><b class="text-white/80">Shift 拖动</b></span>
+            <span>侧倾<br /><b class="text-white/80">滚轮</b></span>
+          </div>
+        </div>
+
+        <div class="mt-4 rounded-2xl border border-[#ff8b5f]/20 bg-[#ff8b5f]/8 p-4 text-[11px] leading-5 text-white/65">
+          实时编辑会重新生成双轨、枕木、立柱与支架构件。调整时列车仍会沿更新后的轨道运行。
+        </div>
+      </aside>
+
+      <section id="hud" class="pointer-events-none absolute bottom-0 right-0 z-20 p-3 sm:p-5" aria-label="实时仪表盘">
+        <div class="pointer-events-auto w-[min(21rem,calc(100vw-1.5rem))] rounded-[1.35rem] border border-white/15 bg-[#101a24]/84 p-4 shadow-[0_22px_70px_rgba(0,0,0,0.34)] backdrop-blur-xl">
+          <div class="flex items-center justify-between border-b border-white/10 pb-3">
+            <div>
+              <p class="text-[10px] font-bold uppercase tracking-[0.22em] text-[#72e6d1]">Live Telemetry</p>
+              <h2 class="text-sm font-black">实时仪表盘</h2>
+            </div>
+            <span id="run-state" class="rounded-full border border-[#72e6d1]/30 bg-[#72e6d1]/10 px-2.5 py-1 text-[10px] font-black text-[#72e6d1]">待发车</span>
+          </div>
+
+          <div class="mt-4 grid grid-cols-3 gap-2">
+            <div class="metric">
+              <span>时速</span>
+              <strong id="speed-value">0</strong>
+              <small>km/h</small>
+            </div>
+            <div class="metric">
+              <span>高度</span>
+              <strong id="height-value">0</strong>
+              <small>m</small>
+            </div>
+            <div class="metric">
+              <span>过载</span>
+              <strong id="g-value">0.0</strong>
+              <small>G</small>
+            </div>
+          </div>
+
+          <div class="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
+            <div id="g-bar" class="h-full w-1/2 -translate-x-1/2 rounded-full bg-[#72e6d1] transition-[width,background-color]"></div>
+          </div>
+          <p id="g-message" class="mt-2 min-h-5 text-center text-xs font-bold text-white/65">正常载荷</p>
+
+          <button id="dispatch-button" class="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#ff6b35] px-4 py-3 text-sm font-black text-white shadow-[inset_0_-3px_0_rgba(0,0,0,0.2)] transition hover:bg-[#ff7d4d] focus:outline-none focus:ring-2 focus:ring-[#72e6d1] focus:ring-offset-2 focus:ring-offset-[#101a24]">
+            <span id="dispatch-icon">▶</span><span id="dispatch-label">发车</span>
+          </button>
+        </div>
+      </section>
+
+      <div id="loading" class="absolute inset-0 z-50 grid place-items-center bg-[#101a24] transition-opacity duration-500">
+        <div class="text-center">
+          <div class="mx-auto mb-5 h-12 w-12 animate-spin rounded-full border-4 border-white/10 border-t-[#ff6b35]"></div>
+          <p class="text-[10px] font-bold uppercase tracking-[0.28em] text-[#72e6d1]">Building the thrill</p>
+          <h2 class="mt-2 text-xl font-black">正在搭建霓虹游乐园</h2>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

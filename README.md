@@ -11,7 +11,7 @@
 | <img src="docs/images/lac-des-fleurs.png" width="580" alt="Lac des Fleurs 森林湖畔村庄画面"> | **Lac des Fleurs · 森林湖畔村庄**<br><sub>Three.js · 可行走场景 · 程序化湖面反射</sub><br><br>一片森林，中间有一座湖，湖心是一栋废弃宅邸，四周是繁花盛开的法国村庄。八栋奶油灰泥、陶土屋顶的民居环湖排开，湖畔广场、喷泉、教堂、码头、薰衣草田、凉亭与林间步道由环湖路和支路串在一起。<br><br>俯瞰与第一人称步行双模式：点击地点标记飞行查看，或沿路走进村庄；在码头登上小船按空格，30 秒自动绕湖一周。湖水有真实镜面反射与波纹，森林、花海、草丛全部实例化并随风摆动。全部模型、贴图与音效程序化生成。<br><br>[详细说明与 AI 复现提示词 →](docs/projects/lac-des-fleurs.md) |
 | <img src="docs/images/minecraft.png" width="580" alt="我的世界体素沙盒游戏画面"> | **我的世界 · Mine World**<br><sub>PlayCanvas · 体素沙盒 · 挖掘建造 · 背包与战斗</sub><br><br>用 PlayCanvas 2.x 复现的《我的世界》：10×10 个 16×16×64 的区块拼成一座漂浮在海上的方块岛屿，分形噪声生成丘陵、山脊与雪山，海平面以下是湖与海，山坡上长着橡树，地下埋着煤、铁与钻石矿脉。<br><br>第一人称行走、跳跃、游泳与飞行；36 格背包与合成表，从原木到木板、木棍，一路做出木 / 石 / 铁 / 钻石四档的镐、斧、铲与剑；挖掘有硬度与工具门槛，工具带耐久，剑会击退游荡的僵尸，生命值、回血与死亡复活一应俱全。<br><br>[详细说明与 AI 复现提示词 →](docs/projects/minecraft.md) |
 | <img src="docs/images/yellow-crane.png" width="580" alt="黄鹤楼三维场景"> | **黄鹤楼 · Yellow Crane Tower**<br><sub>Three.js · 程序化楼阁 · 第一/第三人称漫游</sub><br><br>五层重檐楼阁，总高约 51 米，坐落在两层方形石台基与石阶广场上：红柱、黄琉璃瓦、四角起翘、檐下三层斗拱、外回廊与木栏杆，顶部金色攒尖宝顶。底层大厅贴程序化《白云黄鹤》壁画，门上是「黄鹤楼」金字匾额；二至五层陈列青铜鼎、青花瓷、编钟与铜鹤，点击弹出介绍卡片。<br><br>带扶手的「之」字木楼梯连通五层，楼板洞口、墙体、栏杆与楼梯扶手都有碰撞；顶层四面敞开，可远眺长江、蛇山松林与对岸武汉城市剪影。5 位低多边形 NPC 在各层漫步、上下楼梯、偶尔看风景；支持第一/第三人称、飞行俯瞰、昼夜切换、手机虚拟摇杆与泛光。<br><br>[详细说明与 AI 复现提示词 →](docs/projects/yellow-crane.md) |
-| _待添加_ | _下一个作品排在这里，格式同上：左图右文。_ |
+| <img src="docs/images/rollercoaster-park.png" width="580" alt="3D 过山车游乐园场景"> | **3D 过山车游乐园 · Neon Circuit**<br><sub>Three.js · 实时轨道编辑 · 第一人称物理模拟</sub><br><br>闭合样条轨道包含链条爬升、湖面俯冲、360° 垂直回环、侧倾螺旋与磁刹进站段；双圆管主轨、枕木、立柱和回环 A 字架随控制点实时重建。四节铰接列车按重力、摩擦与空气阻力积分运动，四种相机、实时 G 值 HUD、昼夜霓虹和 Web Audio 程序化音效一应俱全。<br><br>[详细说明与 AI 复现提示词 →](docs/projects/rollercoaster-park.md) |
 
 ## 快速开始
 
@@ -35,6 +35,9 @@ pnpm build:minecraft  # 构建沙盒 → 我的世界/dist/
 
 pnpm dev:yellowcrane   # 项目 05 · 黄鹤楼  http://127.0.0.1:5177
 pnpm build:yellowcrane # 构建楼阁 → 黄鹤楼/dist/
+
+pnpm dev:rollercoaster # 项目 06 · 3D 过山车游乐园  http://127.0.0.1:5178
+pnpm build:rollercoaster # 构建过山车 → 3D 过山车游乐园/dist/
 ```
 
 `dist/` 已提交到仓库，可直接用静态服务器部署；修改源码后重新构建并提交对应的 `dist/`。
@@ -78,9 +81,15 @@ pnpm build:yellowcrane # 构建楼阁 → 黄鹤楼/dist/
    ├─ index.html
    ├─ vite.config.js
    └─ src/
-└─ 黄鹤楼/                  项目 05 · 端口 5177
+├─ 黄鹤楼/                  项目 05 · 端口 5177
+│  ├─ README.md
+│  ├─ index.html
+│  ├─ vite.config.js
+│  └─ src/
+└─ 3D 过山车游乐园/          项目 06 · 端口 5178
    ├─ README.md
    ├─ index.html
    ├─ vite.config.js
+   ├─ dist/
    └─ src/
 ```

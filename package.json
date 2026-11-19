@@ -20,7 +20,9 @@
     "dev:yellowcrane": "cd 黄鹤楼 && vite",
     "build:yellowcrane": "cd 黄鹤楼 && vite build",
     "dev:rollercoaster": "cd \"3D 过山车游乐园\" && vite",
-    "build:rollercoaster": "cd \"3D 过山车游乐园\" && vite build"
+    "build:rollercoaster": "cd \"3D 过山车游乐园\" && vite build",
+    "dev:solar": "cd 太阳系概览 && vite",
+    "build:solar": "cd 太阳系概览 && vite build"
   },
   "dependencies": {
     "playcanvas": "^2.24.1",

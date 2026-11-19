@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>太阳系概览 · Solar System</title>
+    <meta
+      name="description"
+      content="可交互的太阳系 3D 观察台：太阳、八大行星与月球，自转公转、轴倾角、地球大气云层、土星环与月面细节。"
+    />
+  </head>
+  <body>
+    <!-- 开场：像素月面 -->
+    <section id="intro" class="intro" aria-label="开场">
+      <canvas id="intro-canvas" class="intro-canvas"></canvas>
+      <div class="intro-overlay">
+        <p class="intro-kicker">交互式星体观察 · INTERACTIVE ORRERY</p>
+        <canvas id="intro-title" class="intro-title" aria-label="SOLAR SYSTEM"></canvas>
+        <p class="intro-sub">以像素月面为起点，进入太阳系。</p>
+        <button id="intro-enter" class="intro-enter" type="button">
+          <span class="intro-enter-dot" aria-hidden="true"></span>
+          <span>点击进入总览</span>
+          <em>ENTER</em>
+        </button>
+        <p class="intro-hint">拖动查看 · 滚轮缩放 · 方向键切换天体</p>
+      </div>
+      <div class="intro-vignette" aria-hidden="true"></div>
+      <div class="intro-scan" aria-hidden="true"></div>
+    </section>
+
+    <!-- 主舞台 -->
+    <section id="stage" class="stage" aria-label="太阳系观察台" hidden>
+      <canvas id="scene" class="scene"></canvas>
+      <div id="label-layer" class="label-layer" aria-hidden="true"></div>
+
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <canvas id="brand-title" class="brand-pixel" aria-label="SOLAR SYSTEM"></canvas>
+          <span class="brand-cn">太阳系</span>
+        </div>
+        <nav class="topnav" aria-label="主菜单">
+          <button type="button" data-act="overview">总览</button>
+          <button type="button" data-act="body">天体</button>
+          <button type="button" data-act="settings">显示设置</button>
+        </nav>
+      </header>
+
+      <nav id="catalog" class="catalog" aria-label="天体目录"></nav>
+
+      <div class="hero">
+        <h1 class="hero-title">动态太阳系</h1>
+        <p class="hero-sub">SOLAR SYSTEM</p>
+        <p class="hero-note">选择一颗天体开始观察 · 尺寸与距离经过展示性调整</p>
+        <p class="hero-count"><span id="hero-index">01</span> / 10</p>
+      </div>
+
+      <aside id="panel" class="panel" aria-live="polite" hidden>
+        <div class="panel-head">
+          <span id="panel-type" class="panel-kicker">行星</span>
+          <button id="panel-close" class="icon-btn" type="button" aria-label="关闭信息面板">×</button>
+        </div>
+        <div class="panel-scroll">
+          <div class="panel-title">
+            <h2 id="panel-name">地球</h2>
+            <p id="panel-en">EARTH</p>
+          </div>
+          <p id="panel-intro" class="panel-intro"></p>
+          <div class="panel-section">
+            <h3>关键数据</h3>
+            <div id="panel-stats" class="stat-grid"></div>
+            <p class="panel-fine">数据为真实量级；画面中的尺寸与距离另有压缩。</p>
+          </div>
+          <div class="panel-section">
+            <h3>观察重点</h3>
+            <ul id="panel-focus" class="focus-list"></ul>
+          </div>
+          <div class="panel-section">
+            <h3>资料来源</h3>
+            <ul id="panel-sources" class="source-list"></ul>
+          </div>
+          <p class="panel-disclaimer">
+            展示性调整：行星半径与轨道半径按非线性比例压缩，公转与自转速度也已放慢/加快以便观察，不代表真实尺度。
+          </p>
+        </div>
+      </aside>
+
+      <aside id="settings" class="settings" hidden>
+        <div class="panel-head">
+          <span class="panel-kicker">显示设置</span>
+          <button id="settings-close" class="icon-btn" type="button" aria-label="关闭显示设置">×</button>
+        </div>
+        <div class="settings-body">
+          <label class="switch-row">
+            <span>自转 <em>AXIAL SPIN</em></span>
+            <input id="toggle-spin" type="checkbox" checked /><i></i>
+          </label>
+          <label class="switch-row">
+            <span>公转 <em>ORBIT</em></span>
+            <input id="toggle-orbit" type="checkbox" checked /><i></i>
+          </label>
+          <label class="switch-row">
+            <span>轨道线 <em>ORBIT LINES</em></span>
+            <input id="toggle-orbits" type="checkbox" checked /><i></i>
+          </label>
+          <label class="switch-row">
+            <span>天体标签 <em>LABELS</em></span>
+            <input id="toggle-labels" type="checkbox" checked /><i></i>
+          </label>
+          <label class="switch-row">
+            <span>减少动态效果 <em>REDUCED MOTION</em></span>
+            <input id="toggle-motion" type="checkbox" /><i></i>
+          </label>
+          <div class="settings-block">
+            <div class="settings-label">机位 <em>CAMERA VIEW</em></div>
+            <div id="settings-views" class="chip-row"></div>
+          </div>
+          <div class="settings-block">
+            <div class="settings-label">键盘 <em>KEYBOARD</em></div>
+            <dl class="keys">
+              <div><dt>← / →</dt><dd>上一颗 / 下一颗</dd></div>
+              <div><dt>空格</dt><dd>暂停 / 继续</dd></div>
+              <div><dt>Esc</dt><dd>返回总览</dd></div>
+              <div><dt>1 – 0</dt><dd>直达天体</dd></div>
+              <div><dt>O / L</dt><dd>轨道线 / 标签</dd></div>
+            </dl>
+          </div>
+        </div>
+      </aside>
+
+      <div id="view-bar" class="view-bar" role="group" aria-label="相机机位" hidden></div>
+
+      <div class="dock" role="toolbar" aria-label="观察控制">
+        <button id="btn-pause" class="dock-btn" type="button" aria-pressed="false">
+          <span class="dock-ico">❚❚</span><span id="pause-label">暂停</span>
+        </button>
+        <button id="btn-spin" class="dock-btn" type="button" aria-pressed="true">自转</button>
+        <button id="btn-orbit" class="dock-btn" type="button" aria-pressed="true">公转</button>
+        <label class="speed">
+          <span>速度</span>
+          <input id="speed" type="range" min="0" max="100" value="38" aria-label="动画速度" />
+        </label>
+        <button id="btn-orbits" class="dock-btn" type="button" aria-pressed="true">轨道线</button>
+        <button id="btn-reset" class="dock-btn" type="button">重置视角</button>
+        <div class="dock-sep" aria-hidden="true"></div>
+        <button id="btn-prev" class="dock-btn dock-arrow" type="button" aria-label="上一颗天体">←</button>
+        <span class="dock-count"><b id="dock-index">01</b> / 10</span>
+        <button id="btn-next" class="dock-btn dock-arrow" type="button" aria-label="下一颗天体">→</button>
+      </div>
+
+      <div class="statusbar">
+        <span id="clock-sim">模拟 0000 日</span>
+        <span class="status-dot" aria-hidden="true"></span>
+        <span>系统在线</span>
+      </div>
+
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    </section>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

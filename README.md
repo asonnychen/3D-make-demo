@@ -13,6 +13,7 @@
 | <img src="docs/images/yellow-crane.png" width="580" alt="黄鹤楼三维场景"> | **黄鹤楼 · Yellow Crane Tower**<br><sub>Three.js · 程序化楼阁 · 第一/第三人称漫游</sub><br><br>五层重檐楼阁，总高约 51 米，坐落在两层方形石台基与石阶广场上：红柱、黄琉璃瓦、四角起翘、檐下三层斗拱、外回廊与木栏杆，顶部金色攒尖宝顶。底层大厅贴程序化《白云黄鹤》壁画，门上是「黄鹤楼」金字匾额；二至五层陈列青铜鼎、青花瓷、编钟与铜鹤，点击弹出介绍卡片。<br><br>带扶手的「之」字木楼梯连通五层，楼板洞口、墙体、栏杆与楼梯扶手都有碰撞；顶层四面敞开，可远眺长江、蛇山松林与对岸武汉城市剪影。5 位低多边形 NPC 在各层漫步、上下楼梯、偶尔看风景；支持第一/第三人称、飞行俯瞰、昼夜切换、手机虚拟摇杆与泛光。<br><br>[详细说明与 AI 复现提示词 →](docs/projects/yellow-crane.md) |
 | <img src="docs/images/rollercoaster-park.png" width="580" alt="3D 过山车游乐园场景"> | **3D 过山车游乐园 · Neon Circuit**<br><sub>Three.js · 实时轨道编辑 · 第一人称物理模拟</sub><br><br>闭合样条轨道包含链条爬升、湖面俯冲、360° 垂直回环、侧倾螺旋与磁刹进站段；双圆管主轨、枕木、立柱和回环 A 字架随控制点实时重建。四节铰接列车按重力、摩擦与空气阻力积分运动，四种相机、实时 G 值 HUD、昼夜霓虹和 Web Audio 程序化音效一应俱全。<br><br>[详细说明与 AI 复现提示词 →](docs/projects/rollercoaster-park.md) |
 | <img src="docs/images/solar-system.png" width="580" alt="太阳系概览交互观察台"> | **太阳系概览 · Solar System**<br><sub>Three.js · 程序化天体 · 交互观察</sub><br><br>以像素月面开场，点击进入可交互的太阳系：太阳、八大行星与月球各有程序化生成的表面 —— 太阳米粒组织与两种着色器火焰层、月面撞击坑、木星条带与红斑、地球海陆与独立云层、菲涅尔大气、土星环缝。<br><br>点击天体或目录即可让镜头平滑跟踪，随时拖拽接管；提供受光面、晨昏线、极区、夜侧与细节五种机位，以及暂停、速度、自转公转、轨道线和标签开关。右侧面板给出中文介绍、真实数据、观察重点与 NASA 资料来源，并注明尺寸与距离的展示性调整。黑白灰界面、像素点阵标题，适配触屏、键盘与减少动态效果。<br><br>[详细说明与 AI 复现提示词 →](docs/projects/solar-system.md) |
+| <img src="docs/images/3d-billiards.png" width="580" alt="九号俱乐部 CLUB No.9 第一人称台球"> | **3D台球 · 九号俱乐部 CLUB No.9**<br><sub>Three.js · Rapier 物理 · 第一人称瞄准</sub><br><br>深夜台球厅里的英式十二尺大台：十五颗号码球按标准三角摆好，白球在开球点。第一人称站在球杆后，鼠标左右瞄准、上下压视线，台面实时显示虚线、幽灵球与目标球分离方向；按住左键蓄力，松开出杆，Rapier 以 120 Hz 驱动球球 / 球库碰撞与六个袋口的落袋。<br><br>自由练习不计犯规，白球落袋自动回位，进球计数与落袋球列表实时更新；每杆以 60 Hz 记录球位与旋转，保留最近 8 杆，可播放 / 暂停 / 拖动进度 / 重播。程序化木墙、地毯、画作、吊灯、飞镖盘、号码球贴图与 Web Audio 音效，全部中英文界面切换。<br><br>[详细说明与 AI 复现提示词 →](docs/projects/3d-billiards.md) |
 
 ## 快速开始
 
@@ -42,13 +43,16 @@ pnpm build:rollercoaster # 构建过山车 → 3D 过山车游乐园/dist/
 
 pnpm dev:solar          # 项目 07 · 太阳系概览  http://127.0.0.1:5179
 pnpm build:solar        # 构建太阳系 → 太阳系概览/dist/
+
+pnpm dev:billiards      # 项目 08 · 3D台球  http://127.0.0.1:5181
+pnpm build:billiards    # 构建台球 → 3D台球/dist/
 ```
 
 `dist/` 已提交到仓库，可直接用静态服务器部署；修改源码后重新构建并提交对应的 `dist/`。
 
 单文件版本把 Three.js、样式和全部程序内联进一个 HTML（约 640 KB），双击即可打开，不需要服务器、不依赖网络。
 
-技术栈：Vite + Three.js + PlayCanvas + Tailwind CSS v4。
+技术栈：Vite + Three.js + Rapier + PlayCanvas + Tailwind CSS v4。
 
 ## 目录结构
 
@@ -96,7 +100,13 @@ pnpm build:solar        # 构建太阳系 → 太阳系概览/dist/
    ├─ vite.config.js
    ├─ dist/
    └─ src/
-└─ 太阳系概览/              项目 07 · 端口 5179
+├─ 太阳系概览/              项目 07 · 端口 5179
+   ├─ README.md
+   ├─ index.html
+   ├─ vite.config.js
+   ├─ dist/
+   └─ src/
+└─ 3D台球/                  项目 08 · 端口 5181
    ├─ README.md
    ├─ index.html
    ├─ vite.config.js

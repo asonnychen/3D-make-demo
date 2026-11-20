@@ -22,9 +22,12 @@
     "dev:rollercoaster": "cd \"3D 过山车游乐园\" && vite",
     "build:rollercoaster": "cd \"3D 过山车游乐园\" && vite build",
     "dev:solar": "cd 太阳系概览 && vite",
-    "build:solar": "cd 太阳系概览 && vite build"
+    "build:solar": "cd 太阳系概览 && vite build",
+    "dev:billiards": "cd 3D台球 && vite",
+    "build:billiards": "cd 3D台球 && vite build"
   },
   "dependencies": {
+    "@dimforge/rapier3d-compat": "^0.21.0",
     "playcanvas": "^2.24.1",
     "three": "^0.187.0"
   },

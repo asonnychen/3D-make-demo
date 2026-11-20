@@ -11,6 +11,7 @@
 | `黄鹤楼/` | 黄鹤楼 · Yellow Crane Tower | 5177 |
 | `3D 过山车游乐园/` | 3D 过山车游乐园 · Neon Circuit | 5178 |
 | `太阳系概览/` | 太阳系概览 · Solar System | 5179 |
+| `3D台球/` | 3D台球 · 九号俱乐部 CLUB No.9 | 5181 |
 
 > **铁律：先建文件夹，再开发。** 新增任何项目，第一步都必须先在仓库根目录创建新的项目文件夹，之后所有代码、页面、构建配置与文档都放在该文件夹内。禁止在根目录直接写项目代码，禁止把新项目塞进已有项目的目录，禁止多个项目共用一个目录。
 
@@ -26,7 +27,7 @@
 
 ### 2. 共享依赖，独立源码
 
-所有项目共用根 `package.json` 的依赖（`three`、`vite`、`tailwindcss`、`@tailwindcss/vite`）。每个项目目录至少包含：
+所有项目共用根 `package.json` 的依赖（`three`、`@dimforge/rapier3d-compat`、`vite`、`tailwindcss`、`@tailwindcss/vite`）。每个项目目录至少包含：
 
 ```
 <项目>/
@@ -55,7 +56,8 @@
 | 5178 | 3D 过山车游乐园 | `pnpm dev:rollercoaster` / `pnpm build:rollercoaster` |
 | 5179 | 太阳系概览 | `pnpm dev:solar` / `pnpm build:solar` |
 | 5180 | 科隆大教堂单文件静态预览 | `pnpm serve` |
-| 5180+ | 新项目依次递增 | `pnpm dev:<name>` / `pnpm build:<name>` |
+| 5181 | 3D台球 | `pnpm dev:billiards` / `pnpm build:billiards` |
+| 5181+ | 新项目依次递增 | `pnpm dev:<name>` / `pnpm build:<name>` |
 
 新项目在 `vite.config.js` 中显式写 `server.port`，在根 `package.json` 添加上面的脚本，并更新本表与根 `README.md`。
 

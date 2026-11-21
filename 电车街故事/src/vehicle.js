@@ -17,7 +17,7 @@ export class CourierVehicle {
       engine: 1, // 1~3
       handling: 1, // 1~3
       nitro: 1, // 1~3
-      paintColor: '#7aa2b8' // 默认天青蓝 (Kestrel Azure)
+      paintColor: '#78a6bc' // 清新海港天青蓝 (Kestrel Azure)
     };
 
     // 物理参数
@@ -56,8 +56,10 @@ export class CourierVehicle {
     // 初始化模型与网格
     this.buildVehicleMesh();
 
-    // 初始位置设置在电车大道中央 (靠近钟楼集市)
-    this.mesh.position.set(0, 0, 7.5);
+    // 初始位置设置在电车大道右侧车道 (朝向前方微偏左，完美还原原图 3/4 俯后立体视角)
+    this.mesh.position.set(3.8, 0, 10.0);
+    this.heading = -0.04;
+    this.mesh.rotation.y = this.heading;
     this.scene.add(this.mesh);
   }
 

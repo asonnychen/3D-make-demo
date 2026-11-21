@@ -62,10 +62,14 @@
 .wave-bar-3 { animation: barBounce3 0.6s infinite ease-in-out; }
 .wave-bar-4 { animation: barBounce4 0.95s infinite ease-in-out; }
 
-/* 扫描线或网格小背景 */
-.minimap-grid {
-  background-image: 
-    linear-gradient(to right, rgba(200, 186, 160, 0.3) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(200, 186, 160, 0.3) 1px, transparent 1px);
-  background-size: 20px 20px;
+/* 窄屏自适应与排版 */
+@media (max-width: 640px) {
+  .hud-narrow-scale {
+    transform: scale(0.85);
+    transform-origin: bottom left;
+  }
+  .hud-narrow-scale-right {
+    transform: scale(0.85);
+    transform-origin: bottom right;
+  }
 }

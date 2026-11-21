@@ -12,105 +12,102 @@
   <div id="canvas-container" class="absolute inset-0 w-full h-full z-0"></div>
 
   <!-- 顶部主导航栏 (严格复刻原图顶部) -->
-  <header class="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-6 py-3 hud-card border-b border-[#c6baa4] shadow-sm">
+  <header class="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-3 sm:px-6 py-2 sm:py-3 hud-card border-b border-[#c6baa4] shadow-sm">
     <!-- 左侧：标志与项目标题 -->
-    <div class="flex items-center gap-3">
-      <!-- 红色复古邮车图标 -->
-      <div class="w-10 h-10 rounded-lg bg-[#b83f2a] flex items-center justify-center text-[#fcf9f2] font-black shadow-inner">
-        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <div class="flex items-center gap-2 sm:gap-3">
+      <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-[#b83f2a] flex items-center justify-center text-[#fcf9f2] font-black shadow-inner">
+        <svg class="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M7 17l9.2-9.2M17 17V7H7"/>
         </svg>
       </div>
       <div>
-        <h1 class="text-xl font-black tracking-wider text-[#a83b28] uppercase font-display leading-tight">TRAMLINE</h1>
-        <p class="text-[11px] font-bold tracking-widest text-[#7a6f63] uppercase">STORIES / PORT MORROW (电车街故事 · 莫罗港)</p>
+        <h1 class="text-base sm:text-xl font-black tracking-wider text-[#a83b28] uppercase font-display leading-tight">TRAMLINE</h1>
+        <p class="text-[9px] sm:text-[11px] font-bold tracking-widest text-[#7a6f63] uppercase">STORIES / PORT MORROW</p>
       </div>
     </div>
 
     <!-- 中间：状态与功能药丸标签组 -->
-    <div class="flex items-center gap-2 bg-[#dcd3bf] p-1 rounded-full border border-[#c5b9a2]">
+    <div class="flex items-center gap-1 sm:gap-2 bg-[#dcd3bf] p-0.5 sm:p-1 rounded-full border border-[#c5b9a2]">
       <!-- 自由漫游 -->
-      <button id="btn-free-roam" class="px-4 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 bg-[#f6f1e6] text-[#b83f2a] shadow-sm">
-        <span class="w-2 h-2 rounded-full bg-[#b83f2a] animate-pulse"></span>
-        <span>FREE ROAM (自由漫游)</span>
+      <button id="btn-free-roam" class="px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold transition flex items-center gap-1 bg-[#f6f1e6] text-[#b83f2a] shadow-sm">
+        <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#b83f2a] animate-pulse"></span>
+        <span class="hidden sm:inline">FREE ROAM (自由漫游)</span>
+        <span class="sm:hidden">漫游</span>
       </button>
 
       <!-- 探索差事 -->
-      <button id="btn-explore" class="px-4 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 text-[#5c5348] hover:bg-[#eae2cf]">
-        <svg class="w-3.5 h-3.5 text-[#b83f2a]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button id="btn-explore" class="px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold transition flex items-center gap-1 text-[#5c5348] hover:bg-[#eae2cf]">
+        <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#b83f2a]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
         </svg>
-        <span>EXPLORE (差事清单)</span>
-        <span id="errand-badge" class="w-4 h-4 rounded-full bg-[#b83f2a] text-[#ffffff] text-[10px] flex items-center justify-center font-bold">3</span>
+        <span class="hidden sm:inline">EXPLORE (差事)</span>
+        <span class="sm:hidden">差事</span>
+        <span id="errand-badge" class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-[#b83f2a] text-[#ffffff] text-[9px] sm:text-[10px] flex items-center justify-center font-bold">3</span>
       </button>
 
       <!-- 车库改装 -->
-      <button id="btn-garage" class="px-4 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 text-[#5c5348] hover:bg-[#eae2cf]">
-        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button id="btn-garage" class="px-2.5 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold transition flex items-center gap-1 text-[#5c5348] hover:bg-[#eae2cf]">
+        <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C1.4 11.2 1 12 1 13v3c0 .6.4 1 1 1h2"/>
           <circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
         </svg>
-        <span>GARAGE (车库改装)</span>
+        <span class="hidden sm:inline">GARAGE (车库)</span>
+        <span class="sm:hidden">车库</span>
       </button>
     </div>
 
     <!-- 右侧：现金余额与玩家徽章 -->
-    <div class="flex items-center gap-4">
+    <div class="flex items-center gap-2 sm:gap-4">
       <div class="text-right">
-        <div class="text-[10px] tracking-widest font-bold text-[#84786a] uppercase">CASH BALANCE (现金余额)</div>
-        <div id="cash-display" class="text-2xl font-black text-[#1e2f42] font-mono-num tracking-tight">$24,850</div>
+        <div class="text-[8px] sm:text-[10px] tracking-widest font-bold text-[#84786a] uppercase">CASH BALANCE</div>
+        <div id="cash-display" class="text-base sm:text-2xl font-black text-[#1e2f42] font-mono-num tracking-tight">$24,850</div>
       </div>
-      <!-- 玩家复古徽章 -->
-      <div class="w-10 h-10 rounded-full bg-[#9b3a28] border-2 border-[#e6c98a] flex items-center justify-center text-[#faecd1] font-bold text-sm shadow-md">
+      <div class="w-7 h-7 sm:w-10 sm:h-10 rounded-full bg-[#9b3a28] border-2 border-[#e6c98a] flex items-center justify-center text-[#faecd1] font-bold text-xs sm:text-sm shadow-md">
         AW
       </div>
     </div>
   </header>
 
   <!-- 左下角 HUD (街区信息、小地图、耐久与氮气) -->
-  <div class="absolute bottom-16 left-6 z-20 flex flex-col gap-2.5 w-[280px]">
+  <div class="absolute bottom-11 sm:bottom-14 left-2 sm:left-6 z-20 flex flex-col gap-1.5 sm:gap-2.5 w-[190px] sm:w-[270px]">
     <!-- 地点卡片 -->
-    <div class="hud-card px-4 py-2 rounded-lg flex items-center justify-between border border-[#c6baa4]">
-      <div class="flex items-center gap-2">
-        <div class="w-5 h-5 rounded-full bg-[#203348] text-[#f7f3ea] flex items-center justify-center">
-          <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+    <div class="hud-card px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg flex items-center justify-between border border-[#c6baa4]">
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <div class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#203348] text-[#f7f3ea] flex items-center justify-center">
+          <svg class="w-2.5 h-2.5 sm:w-3 sm:h-3" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
           </svg>
         </div>
         <div>
-          <div id="zone-name" class="font-extrabold text-xs tracking-wider text-[#22313f] uppercase">CLOCKMARKET (钟楼集市)</div>
-          <div id="street-name" class="text-[10px] text-[#7a6f63]">Tramline Avenue (电车大道)</div>
+          <div id="zone-name" class="font-extrabold text-[10px] sm:text-xs tracking-wider text-[#22313f] uppercase truncate max-w-[95px] sm:max-w-none">CLOCKMARKET</div>
+          <div id="street-name" class="text-[8px] sm:text-[10px] text-[#7a6f63] truncate max-w-[95px] sm:max-w-none">Tramline Avenue</div>
         </div>
       </div>
-      <div id="time-display" class="text-[11px] font-bold text-[#914234] font-mono-num">PM 04:15</div>
+      <div id="time-display" class="text-[9px] sm:text-[11px] font-bold text-[#914234] font-mono-num">PM 04:15</div>
     </div>
 
     <!-- 雷达小地图 -->
-    <div class="relative w-[280px] h-[190px] rounded-lg hud-card border border-[#c6baa4] overflow-hidden p-1 shadow-inner">
-      <canvas id="minimap-canvas" width="272" height="182" class="w-full h-full rounded bg-[#e8dfc8]"></canvas>
-      <!-- 小地图覆盖标记与快捷键提示 -->
-      <div class="absolute top-2 left-2 text-[10px] font-black text-[#6a5e50] bg-[#e1d5bc] px-1.5 py-0.5 rounded border border-[#c4b79e]">N</div>
-      <button id="btn-open-map" title="展开全景大地图" class="absolute bottom-2 right-2 text-[10px] font-black text-[#ffffff] bg-[#293d52] px-2 py-0.5 rounded shadow hover:bg-[#395370] transition">
+    <div class="relative w-full h-[125px] sm:h-[180px] rounded-lg hud-card border border-[#c6baa4] overflow-hidden p-1 shadow-inner">
+      <canvas id="minimap-canvas" width="260" height="170" class="w-full h-full rounded bg-[#e8dfc8]"></canvas>
+      <div class="absolute top-1.5 left-1.5 text-[9px] font-black text-[#6a5e50] bg-[#e1d5bc] px-1 py-0.2 rounded border border-[#c4b79e]">N</div>
+      <button id="btn-open-map" title="展开全景大地图" class="absolute bottom-1.5 right-1.5 text-[9px] sm:text-[10px] font-black text-[#ffffff] bg-[#293d52] px-1.5 py-0.5 rounded shadow hover:bg-[#395370] transition">
         M (地图)
       </button>
     </div>
 
     <!-- 车辆耐久度与氮气值状态条 -->
-    <div class="hud-card px-3 py-2 rounded-lg flex flex-col gap-1.5 border border-[#c6baa4]">
-      <!-- 耐久 HEALTH -->
-      <div class="flex items-center justify-between text-[11px] font-bold">
+    <div class="hud-card px-2.5 sm:px-3 py-1 sm:py-2 rounded-lg flex flex-col gap-1 border border-[#c6baa4]">
+      <div class="flex items-center justify-between text-[9px] sm:text-[11px] font-bold">
         <span class="flex items-center gap-1 text-[#b53c29]">
-          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-          <span id="health-value">100</span> HEALTH (耐久)
+          <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          <span id="health-value">100</span> 耐久
         </span>
         <span class="flex items-center gap-1 text-[#3b7596]">
-          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
-          <span id="nitro-value">100</span> NITRO (加速)
+          <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+          <span id="nitro-value">100</span> 加速
         </span>
       </div>
-
-      <!-- 进度条组合 -->
-      <div class="w-full h-2 rounded-full bg-[#d6cab2] overflow-hidden flex">
+      <div class="w-full h-1.5 sm:h-2 rounded-full bg-[#d6cab2] overflow-hidden flex">
         <div id="health-bar" class="h-full bg-gradient-to-r from-[#d94a36] to-[#eb7454] transition-all duration-150" style="width: 50%;"></div>
         <div id="nitro-bar" class="h-full bg-gradient-to-r from-[#3e8ea8] to-[#60b5d1] transition-all duration-75" style="width: 50%;"></div>
       </div>
@@ -118,72 +115,107 @@
   </div>
 
   <!-- 右下角 HUD (速度仪表盘与原创电台) -->
-  <div class="absolute bottom-16 right-6 z-20 flex flex-col gap-2.5 w-[280px]">
-    <!-- 仪表盘 (深蓝质感卡片，高度还原截图) -->
-    <div class="hud-card-dark p-4 rounded-xl text-[#f3ede1] flex flex-col gap-2 border border-[#3b4f66]">
-      <div class="flex items-center justify-between text-[10px] tracking-wider text-[#9bb3ca] uppercase font-bold border-b border-[#2d4056] pb-1.5">
-        <span>KESTREL N4 COURIER (雨燕 N4 快递车)</span>
-        <svg class="w-4 h-4 text-[#e06c4b]" viewBox="0 0 24 24" fill="currentColor">
+  <div class="absolute bottom-11 sm:bottom-14 right-2 sm:right-6 z-20 flex flex-col gap-1.5 sm:gap-2.5 w-[190px] sm:w-[270px]">
+    <!-- 仪表盘 -->
+    <div class="hud-card-dark p-2.5 sm:p-4 rounded-xl text-[#f3ede1] flex flex-col gap-1 sm:gap-2 border border-[#3b4f66]">
+      <div class="flex items-center justify-between text-[8px] sm:text-[10px] tracking-wider text-[#9bb3ca] uppercase font-bold border-b border-[#2d4056] pb-1">
+        <span class="truncate max-w-[140px] sm:max-w-none">KESTREL N4 COURIER</span>
+        <svg class="w-3.5 h-3.5 text-[#e06c4b]" viewBox="0 0 24 24" fill="currentColor">
           <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
         </svg>
       </div>
 
-      <div class="flex items-baseline justify-between pt-1">
-        <!-- 挡位 N / D / R -->
-        <div id="gear-indicator" class="text-xl font-black text-[#e87754] font-display">N</div>
-
-        <!-- 巨大空心数字速度表 -->
-        <div class="flex items-baseline gap-1.5">
-          <span id="speed-display" class="text-5xl font-light tracking-tighter text-[#ffffff] font-mono-num leading-none">000</span>
+      <div class="flex items-baseline justify-between pt-0.5 sm:pt-1">
+        <div id="gear-indicator" class="text-base sm:text-xl font-black text-[#e87754] font-display">N</div>
+        <div class="flex items-baseline gap-1">
+          <span id="speed-display" class="text-3xl sm:text-5xl font-light tracking-tighter text-[#ffffff] font-mono-num leading-none">000</span>
           <div class="text-right">
-            <div class="text-[11px] font-bold text-[#b5cbdf]">KM/H</div>
-            <div class="text-[9px] text-[#718da6]">AUTO (自动)</div>
+            <div class="text-[9px] sm:text-[11px] font-bold text-[#b5cbdf]">KM/H</div>
+            <div class="text-[8px] sm:text-[9px] text-[#718da6]">AUTO</div>
           </div>
         </div>
       </div>
 
-      <!-- 底部能量指示与 SHIFT 提示 -->
-      <div class="flex items-center justify-between pt-1 border-t border-[#2d4056] text-[10px] text-[#8ea8c2]">
-        <div class="flex items-center gap-1.5">
+      <div class="flex items-center justify-between pt-1 border-t border-[#2d4056] text-[8px] sm:text-[10px] text-[#8ea8c2]">
+        <div class="flex items-center gap-1">
           <span class="text-[#e87754]">⚡</span>
-          <span>SHIFT 极速冲刺</span>
+          <span>SHIFT 冲刺</span>
         </div>
         <div id="rpm-dots" class="flex gap-1">
           <span class="w-1.5 h-1.5 rounded-full bg-[#e87754]"></span>
           <span class="w-1.5 h-1.5 rounded-full bg-[#e87754]"></span>
-          <span class="w-1.5 h-1.5 rounded-full bg-[#526f8c]"></span>
           <span class="w-1.5 h-1.5 rounded-full bg-[#526f8c]"></span>
         </div>
       </div>
     </div>
 
     <!-- 原创广播电台组件 -->
-    <div id="radio-widget" class="hud-card px-4 py-2.5 rounded-xl flex items-center justify-between border border-[#c6baa4] cursor-pointer hover:bg-[#ede5d3] transition">
-      <div class="flex items-center gap-3">
-        <!-- 收音机图标 -->
-        <div class="w-8 h-8 rounded-lg bg-[#ded3bc] flex items-center justify-center text-[#3c2f25] border border-[#b8ab94]">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <div id="radio-widget" class="hud-card px-2.5 sm:px-4 py-1.5 sm:py-2.5 rounded-xl flex items-center justify-between border border-[#c6baa4] cursor-pointer hover:bg-[#ede5d3] transition">
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-[#ded3bc] flex items-center justify-center text-[#3c2f25] border border-[#b8ab94]">
+          <svg class="w-3 h-3 sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3l-6 4"/><circle cx="17" cy="14" r="2"/>
           </svg>
         </div>
         <div>
-          <div class="text-[9px] font-bold text-[#8a7f72] tracking-wider uppercase">NOW PLAYING (正在播放)</div>
-          <div id="station-name" class="text-xs font-bold text-[#233345] truncate max-w-[150px]">Harbor Frequencies</div>
+          <div class="text-[8px] sm:text-[9px] font-bold text-[#8a7f72] tracking-wider uppercase">NOW PLAYING</div>
+          <div id="station-name" class="text-[10px] sm:text-xs font-bold text-[#233345] truncate max-w-[100px] sm:max-w-[140px]">Harbor Frequencies</div>
         </div>
       </div>
 
-      <!-- 动态跳动声波 -->
-      <div class="flex items-end gap-1 h-5">
-        <span class="w-1 bg-[#d94b38] rounded-full wave-bar-1"></span>
-        <span class="w-1 bg-[#d94b38] rounded-full wave-bar-2"></span>
-        <span class="w-1 bg-[#d94b38] rounded-full wave-bar-3"></span>
-        <span class="w-1 bg-[#d94b38] rounded-full wave-bar-4"></span>
+      <div class="flex items-end gap-0.5 sm:gap-1 h-4 sm:h-5">
+        <span class="w-0.5 sm:w-1 bg-[#d94b38] rounded-full wave-bar-1"></span>
+        <span class="w-0.5 sm:w-1 bg-[#d94b38] rounded-full wave-bar-2"></span>
+        <span class="w-0.5 sm:w-1 bg-[#d94b38] rounded-full wave-bar-3"></span>
+        <span class="w-0.5 sm:w-1 bg-[#d94b38] rounded-full wave-bar-4"></span>
       </div>
     </div>
   </div>
 
-  <!-- 底部快捷控制栏 (严格对齐截图底部操作说明) -->
-  <footer class="absolute bottom-0 left-0 right-0 z-20 h-10 px-8 hud-card border-t border-[#c6baa4] flex items-center justify-between text-xs font-bold text-[#554a3e]">
+  <!-- 底部快捷控制栏 -->
+  <footer class="absolute bottom-0 left-0 right-0 z-20 h-9 sm:h-10 px-3 sm:px-8 hud-card border-t border-[#c6baa4] flex items-center justify-between text-[10px] sm:text-xs font-bold text-[#554a3e] overflow-x-auto whitespace-nowrap">
+    <div class="flex items-center gap-3 sm:gap-6">
+      <div class="flex items-center gap-1">
+        <span class="bg-[#dcd1bc] px-1 py-0.2 rounded font-mono border border-[#baa990]">WASD</span>
+        <span class="hidden sm:inline">驾驶/移动</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <span class="bg-[#dcd1bc] px-1 py-0.2 rounded font-mono border border-[#baa990]">SPACE</span>
+        <span class="hidden sm:inline">手刹/漂移</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <span class="bg-[#dcd1bc] px-1 py-0.2 rounded font-mono border border-[#baa990]">SHIFT</span>
+        <span class="hidden sm:inline">加速</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <span class="bg-[#dcd1bc] px-1 py-0.2 rounded font-mono border border-[#baa990]">E</span>
+        <span class="hidden sm:inline">上下车</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <span class="bg-[#dcd1bc] px-1 py-0.2 rounded font-mono border border-[#baa990]">C</span>
+        <span class="hidden sm:inline">镜头</span>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3 sm:gap-5">
+      <button id="btn-toggle-audio" class="flex items-center gap-1 hover:text-[#b83f2a] transition">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+        </svg>
+        <span>广播/音效</span>
+      </button>
+
+      <button id="btn-footer-map" class="flex items-center gap-1 hover:text-[#b83f2a] transition">
+        <span class="bg-[#dcd1bc] px-1 py-0.2 rounded font-mono border border-[#baa990]">M</span>
+        <span class="hidden sm:inline">地图</span>
+      </button>
+
+      <button id="btn-help" class="flex items-center gap-1 hover:text-[#b83f2a] transition">
+        <span class="bg-[#dcd1bc] px-1 py-0.2 rounded font-mono border border-[#baa990]">ESC</span>
+        <span>帮助</span>
+      </button>
+    </div>
+  </footer>
     <!-- 左侧驾驶操作 -->
     <div class="flex items-center gap-6">
       <div class="flex items-center gap-1.5">

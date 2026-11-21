@@ -14,7 +14,7 @@ class TramlineGame {
     this.scene.background = new THREE.Color(0xe6ded0);
     this.scene.fog = new THREE.FogExp2(0xe2dac7, 0.0028);
 
-    this.camera = new THREE.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 0.5, 1200);
+    this.camera = new THREE.PerspectiveCamera(46, window.innerWidth / window.innerHeight, 0.5, 1200);
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -32,6 +32,15 @@ class TramlineGame {
     this.vehicle = new CourierVehicle(this.scene);
     this.player = new CourierPlayer(this.scene);
     this.missionManager = new MissionManager(this.scene, this.city);
+
+    // 预设对齐原图的初始相机视角 (偏右一点点，俯看车尾与左侧车身)
+    const aspect = window.innerWidth / window.innerHeight;
+    const distFactor = aspect < 1.0 ? Math.min(1.0 / aspect, 1.85) : 1.0;
+    const camHeight = 4.3 * Math.min(distFactor, 1.2);
+    const camDist = 10.6 * distFactor;
+    const initOffset = new THREE.Vector3(0.55, camHeight, camDist).applyAxisAngle(new THREE.Vector3(0, 1, 0), this.vehicle.heading);
+    this.camera.position.copy(this.vehicle.mesh.position).add(initOffset);
+    this.camera.lookAt(this.vehicle.mesh.position.clone().add(new THREE.Vector3(0.1, 1.25, -7.0)));
 
     // 4. 控制与状态
     this.inputState = {
@@ -66,9 +75,6 @@ class TramlineGame {
     // 开启渲染循环
     this.animate = this.animate.bind(this);
     requestAnimationFrame(this.animate);
-
-    // 显示开场提示
-    this.showToast('欢迎来到莫罗港！开着你的雨燕快递车，享受海风与旧电车街区。', '📮');
   }
 
   setupLighting() {
@@ -514,28 +520,33 @@ class TramlineGame {
     this.renderer.render(this.scene, this.camera);
   }
 
-  // 驾驶相机运镜 (严格再现原图追随视角)
+  // 驾驶相机运镜 (严格再现原图追随视角与构图)
   updateCameraDriving(delta) {
     const carPos = this.vehicle.mesh.position;
     const heading = this.vehicle.heading;
 
     if (this.cameraMode === 0) {
-      // 第三人称追尾相机
-      const targetOffset = new THREE.Vector3(0, 4.2, 10.5).applyAxisAngle(new THREE.Vector3(0, 1, 0), heading);
-      const desiredPos = carPos.clone().add(targetOffset);
-      this.camera.position.lerp(desiredPos, delta * 5.0);
+      // 动态自适应屏幕宽高比，保证无论窄屏还是宽屏下，车体比例都与原图完全契合
+      const aspect = window.innerWidth / window.innerHeight;
+      const distFactor = aspect < 1.0 ? Math.min(1.0 / aspect, 1.85) : 1.0;
+      const camHeight = 4.3 * Math.min(distFactor, 1.2);
+      const camDist = 10.6 * distFactor;
 
-      const lookTarget = carPos.clone().add(new THREE.Vector3(0, 1.8, -2.5).applyAxisAngle(new THREE.Vector3(0, 1, 0), heading));
+      const targetOffset = new THREE.Vector3(0.55, camHeight, camDist).applyAxisAngle(new THREE.Vector3(0, 1, 0), heading);
+      const desiredPos = carPos.clone().add(targetOffset);
+      this.camera.position.lerp(desiredPos, delta * 6.0);
+
+      const lookTarget = carPos.clone().add(new THREE.Vector3(0.1, 1.25, -7.0).applyAxisAngle(new THREE.Vector3(0, 1, 0), heading));
       this.camera.lookAt(lookTarget);
     } else if (this.cameraMode === 1) {
       // 驾驶舱近景
-      const cockpitOffset = new THREE.Vector3(0, 2.3, 0.4).applyAxisAngle(new THREE.Vector3(0, 1, 0), heading);
+      const cockpitOffset = new THREE.Vector3(0, 2.2, 0.3).applyAxisAngle(new THREE.Vector3(0, 1, 0), heading);
       this.camera.position.copy(carPos).add(cockpitOffset);
-      const lookTarget = carPos.clone().add(new THREE.Vector3(0, 2.0, -12).applyAxisAngle(new THREE.Vector3(0, 1, 0), heading));
+      const lookTarget = carPos.clone().add(new THREE.Vector3(0, 1.9, -12).applyAxisAngle(new THREE.Vector3(0, 1, 0), heading));
       this.camera.lookAt(lookTarget);
     } else {
       // 全景观光高机位
-      const highOffset = new THREE.Vector3(0, 32, 28).applyAxisAngle(new THREE.Vector3(0, 1, 0), heading);
+      const highOffset = new THREE.Vector3(0, 30, 26).applyAxisAngle(new THREE.Vector3(0, 1, 0), heading);
       this.camera.position.lerp(carPos.clone().add(highOffset), delta * 4);
       this.camera.lookAt(carPos);
     }
@@ -600,7 +611,7 @@ class TramlineGame {
     this.dom.errandBadge.textContent = pendingErrands;
   }
 
-  // 绘制左下角雷达小地图
+  // 绘制左下角雷达小地图 (纵向主大道，与原图街道严格对齐)
   renderMinimap(playerPos) {
     const ctx = this.minimapCtx;
     const w = this.dom.minimapCanvas.width;
@@ -612,43 +623,40 @@ class TramlineGame {
     ctx.fillStyle = '#e8dfc8';
     ctx.fillRect(0, 0, w, h);
 
-    const scale = 0.65; // 缩放比例
+    const scale = 0.65;
     const centerX = w / 2;
     const centerY = h / 2;
 
     const toMapX = (worldX) => centerX + (worldX - playerPos.x) * scale;
     const toMapY = (worldZ) => centerY + (worldZ - playerPos.z) * scale;
 
-    // 1. 绘制海域 (西侧与南侧)
+    // 1. 绘制海域 (西侧)
     ctx.fillStyle = '#9cbcc4';
-    const seaX = toMapX(-230);
+    const seaX = toMapX(-200);
     if (seaX > 0) {
       ctx.fillRect(0, 0, Math.min(seaX, w), h);
     }
 
-    // 2. 绘制街道主路与横路
+    // 2. 绘制街道网络：南北向中央电车大道
     ctx.fillStyle = '#f6f1e3';
-    // 东西向电车大道
-    const mainAvenueY = toMapY(0);
-    ctx.fillRect(0, mainAvenueY - 10, w, 20);
+    const mainAvenueX = toMapX(0);
+    ctx.fillRect(mainAvenueX - 11, 0, 22, h);
 
-    // 两条南北纵路
-    for (let rx of [-80, 80]) {
-      const roadX = toMapX(rx);
-      ctx.fillRect(roadX - 8, 0, 16, h);
+    // 东西向横跨支路 (z = -140, 0, 140)
+    for (let rz of [-140, 0, 140]) {
+      const roadY = toMapY(rz);
+      ctx.fillRect(0, roadY - 8, w, 16);
     }
 
-    // 3. 绘制街区方块 (还原截图中的橙褐色街区)
+    // 3. 绘制街区方块 (橙褐色块)
     ctx.fillStyle = '#d29676';
     const blocks = [
-      { x: -150, z: -60, bw: 42, bh: 32 },
-      { x: -30, z: -60, bw: 42, bh: 32 },
-      { x: 30, z: -60, bw: 42, bh: 32 },
-      { x: 150, z: -60, bw: 42, bh: 32 },
-      { x: -150, z: 60, bw: 42, bh: 32 },
-      { x: -30, z: 60, bw: 42, bh: 32 },
-      { x: 30, z: 60, bw: 42, bh: 32 },
-      { x: 150, z: 60, bw: 42, bh: 32 }
+      { x: -30, z: -80, bw: 24, bh: 36 },
+      { x: 30, z: -80, bw: 24, bh: 36 },
+      { x: -30, z: -20, bw: 24, bh: 36 },
+      { x: 30, z: -20, bw: 24, bh: 36 },
+      { x: -30, z: 60, bw: 24, bh: 36 },
+      { x: 30, z: 60, bw: 24, bh: 36 }
     ];
 
     blocks.forEach((blk) => {
@@ -659,17 +667,26 @@ class TramlineGame {
       ctx.fillRect(bx - bw / 2, by - bh / 2, bw, bh);
     });
 
-    // 4. 绘制旧电车铁轨线 (横贯主大道中央双轨)
-    ctx.strokeStyle = '#a69e90';
+    // 4. 绘制中心双黄线与电车铁轨
+    ctx.strokeStyle = '#e5a83b';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(0, mainAvenueY - 1.5);
-    ctx.lineTo(w, mainAvenueY - 1.5);
-    ctx.moveTo(0, mainAvenueY + 1.5);
-    ctx.lineTo(w, mainAvenueY + 1.5);
+    ctx.moveTo(mainAvenueX, 0);
+    ctx.lineTo(mainAvenueX, h);
     ctx.stroke();
 
-    // 5. 绘制差事目标指引点 (带呼吸圈)
+    // 铁轨
+    ctx.strokeStyle = '#8a9299';
+    ctx.lineWidth = 1;
+    const railX = toMapX(5.9);
+    ctx.beginPath();
+    ctx.moveTo(railX - 1, 0);
+    ctx.lineTo(railX - 1, h);
+    ctx.moveTo(railX + 1, 0);
+    ctx.lineTo(railX + 1, h);
+    ctx.stroke();
+
+    // 5. 绘制差事目标指引点
     const target = this.missionManager.getCurrentTarget();
     if (target) {
       const tx = toMapX(target.pos.x);
@@ -693,11 +710,11 @@ class TramlineGame {
       }
     });
 
-    // 7. 绘制玩家三角形箭头图标 (随朝向旋转)
+    // 7. 绘制玩家三角形箭头图标 (朝向随 heading 旋转)
     const pRot = this.isDriving ? this.vehicle.heading : this.player.heading;
     ctx.save();
     ctx.translate(centerX, centerY);
-    ctx.rotate(pRot + Math.PI); // 朝向调整
+    ctx.rotate(-pRot); // 朝向调整
     ctx.fillStyle = '#223140';
     ctx.beginPath();
     ctx.moveTo(0, -7);
@@ -721,45 +738,43 @@ class TramlineGame {
     ctx.fillStyle = '#f0e6d2';
     ctx.fillRect(0, 0, w, h);
 
-    // 港湾海水部分 (西与南)
+    // 港湾海水部分 (西侧)
     ctx.fillStyle = '#9cb8c4';
     ctx.beginPath();
     ctx.moveTo(0, 0);
     ctx.lineTo(240, 0);
-    ctx.bezierCurveTo(250, 220, 280, 360, 450, 540);
+    ctx.bezierCurveTo(240, 200, 260, 360, 280, 540);
     ctx.lineTo(0, 540);
     ctx.closePath();
     ctx.fill();
 
-    // 道路系统
+    // 道路系统：中央纵向主干道
     ctx.fillStyle = '#fffdf7';
-    // 东西向中央电车大道
-    ctx.fillRect(180, 260, 760, 36);
-    // 南北主道
-    ctx.fillRect(360, 40, 30, 460);
-    ctx.fillRect(660, 40, 30, 460);
-    // 北环路与南滨海路
-    ctx.fillRect(240, 110, 700, 24);
-    ctx.fillRect(300, 420, 640, 24);
+    ctx.fillRect(510 - 18, 0, 36, h);
 
-    // 电车铁轨虚线
+    // 东西横向支路
+    ctx.fillRect(200, 120, 700, 24);
+    ctx.fillRect(200, 270, 700, 24);
+    ctx.fillRect(200, 420, 700, 24);
+
+    // 电车铁轨
     ctx.strokeStyle = '#7c7365';
     ctx.lineWidth = 3;
     ctx.setLineDash([8, 6]);
     ctx.beginPath();
-    ctx.moveTo(180, 278);
-    ctx.lineTo(940, 278);
+    ctx.moveTo(510 + 6, 0);
+    ctx.lineTo(510 + 6, h);
     ctx.stroke();
     ctx.setLineDash([]);
 
     // 标绘所有重要地标
     const landmarks = [
-      { name: '北岬灯塔 (North Cape Lighthouse)', x: 190, y: 75, icon: '🗼', color: '#b53c29' },
-      { name: '海港 7 号栈道 (Wharf 7)', x: 140, y: 350, icon: '⚓', color: '#2d4d68' },
-      { name: '钟楼集市 (Clockmarket)', x: 510, y: 220, icon: '🏛️', color: '#a67232' },
-      { name: 'Rue Prints 街角印刷社', x: 440, y: 310, icon: '📰', color: '#436154' },
-      { name: '旧电车机械所 (Tram Works)', x: 790, y: 170, icon: '🚋', color: '#8c4331' },
-      { name: '莫罗修车库 (Morrow Garage)', x: 740, y: 370, icon: '🔧', color: '#31485e' }
+      { name: '北岬灯塔 (North Cape Lighthouse)', x: 230, y: 70, icon: '🗼', color: '#b53c29' },
+      { name: '海港 7 号栈道 (Wharf 7)', x: 160, y: 340, icon: '⚓', color: '#2d4d68' },
+      { name: '钟楼集市 (Clockmarket)', x: 510, y: 90, icon: '🏛️', color: '#a67232' },
+      { name: 'Rue Prints 街角印刷社', x: 420, y: 220, icon: '📰', color: '#436154' },
+      { name: '旧电车机械所 (Tram Works)', x: 620, y: 440, icon: '🚋', color: '#8c4331' },
+      { name: '莫罗修车库 (Morrow Garage)', x: 680, y: 310, icon: '🔧', color: '#31485e' }
     ];
 
     landmarks.forEach((lm) => {
@@ -781,9 +796,9 @@ class TramlineGame {
     ctx.lineWidth = 2;
     ctx.fillStyle = 'rgba(232, 116, 67, 0.15)';
     [
-      { x: 155, y: 360, label: '邮包 A 信号' },
-      { x: 810, y: 150, label: '邮包 B 信号' },
-      { x: 175, y: 95, label: '邮包 C 信号' }
+      { x: 170, y: 350, label: '邮包 A 信号' },
+      { x: 590, y: 420, label: '邮包 B 信号' },
+      { x: 220, y: 85, label: '邮包 C 信号' }
     ].forEach((p) => {
       ctx.beginPath();
       ctx.arc(p.x, p.y, 22, 0, Math.PI * 2);
@@ -796,8 +811,8 @@ class TramlineGame {
 
     // 绘制玩家当前所在位置
     const pPos = this.isDriving ? this.vehicle.mesh.position : this.player.mesh.position;
-    const mapPx = 510 + (pPos.x / 240) * 260;
-    const mapPy = 278 + (pPos.z / 180) * 160;
+    const mapPx = 510 + (pPos.x / 200) * 180;
+    const mapPy = 270 + (pPos.z / 250) * 220;
 
     // 玩家光圈与箭头
     ctx.fillStyle = 'rgba(184, 63, 42, 0.25)';

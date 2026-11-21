@@ -17,11 +17,11 @@ export class MissionManager {
         subtitle: '烘焙坊 ➔ 北岬灯塔 (Lighthouse)',
         desc: '老面包师出炉了刚烘好的海盐酸面包，需要在它凉透前趁热送到北岬灯塔给老汉斯！',
         reward: 850,
-        status: 'available', // available | active | completed
-        stage: 'pickup', // pickup | deliver
-        pickupPos: new THREE.Vector3(-45, 0, 40),
+        status: 'available',
+        stage: 'pickup',
+        pickupPos: new THREE.Vector3(-24, 0, 30),
         pickupRadius: 10,
-        deliverPos: new THREE.Vector3(-180, 0, -185),
+        deliverPos: new THREE.Vector3(-160, 0, -210),
         deliverRadius: 16,
         timer: 90,
         maxTimer: 90
@@ -34,9 +34,9 @@ export class MissionManager {
         reward: 1200,
         status: 'available',
         stage: 'pickup',
-        pickupPos: new THREE.Vector3(-270, 0, 70),
+        pickupPos: new THREE.Vector3(-250, 0, 80),
         pickupRadius: 12,
-        deliverPos: new THREE.Vector3(135, 0, -90),
+        deliverPos: new THREE.Vector3(28, 0, 130),
         deliverRadius: 14,
         timer: null
       },
@@ -48,9 +48,9 @@ export class MissionManager {
         reward: 1500,
         status: 'available',
         stage: 'pickup',
-        pickupPos: new THREE.Vector3(-35, 0, -20),
+        pickupPos: new THREE.Vector3(-26, 0, -45),
         pickupRadius: 10,
-        deliverPos: new THREE.Vector3(15, 0, -45),
+        deliverPos: new THREE.Vector3(0, 0, -150),
         deliverRadius: 12,
         timer: null
       }

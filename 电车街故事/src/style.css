@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #e5dec9;
+    color: #2c2724;
+  }
+}
+
+/* 复古纸品质感与字体 */
+.font-display {
+  font-family: 'Trebuchet MS', 'Impact', -apple-system, sans-serif;
+  letter-spacing: 0.05em;
+}
+
+.font-mono-num {
+  font-family: 'Courier New', Courier, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 柔和阴影与描边 */
+.hud-card {
+  background: rgba(246, 241, 230, 0.94);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(198, 186, 164, 0.8);
+  box-shadow: 0 8px 24px -4px rgba(45, 38, 30, 0.12), 0 2px 6px rgba(45, 38, 30, 0.06);
+}
+
+.hud-card-dark {
+  background: rgba(28, 41, 56, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(66, 88, 114, 0.6);
+  box-shadow: 0 8px 24px -4px rgba(10, 18, 28, 0.25);
+}
+
+/* 声波动画 */
+@keyframes barBounce1 {
+  0%, 100% { height: 4px; }
+  50% { height: 16px; }
+}
+@keyframes barBounce2 {
+  0%, 100% { height: 12px; }
+  50% { height: 6px; }
+}
+@keyframes barBounce3 {
+  0%, 100% { height: 8px; }
+  50% { height: 18px; }
+}
+@keyframes barBounce4 {
+  0%, 100% { height: 14px; }
+  50% { height: 4px; }
+}
+
+.wave-bar-1 { animation: barBounce1 0.7s infinite ease-in-out; }
+.wave-bar-2 { animation: barBounce2 0.85s infinite ease-in-out; }
+.wave-bar-3 { animation: barBounce3 0.6s infinite ease-in-out; }
+.wave-bar-4 { animation: barBounce4 0.95s infinite ease-in-out; }
+
+/* 扫描线或网格小背景 */
+.minimap-grid {
+  background-image: 
+    linear-gradient(to right, rgba(200, 186, 160, 0.3) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(200, 186, 160, 0.3) 1px, transparent 1px);
+  background-size: 20px 20px;
+}

@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>电车街故事 · Tramline Stories (Port Morrow)</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23b83f2a'/><path d='M30 70 L70 30 M70 70 V30 H30' stroke='white' stroke-width='10' stroke-linecap='round'/></svg>" />
+  <link rel="stylesheet" href="./src/style.css" />
+</head>
+<body class="relative w-screen h-screen overflow-hidden select-none bg-[#e5dec9] text-[#2c2724]">
+  <!-- 3D WebGL 渲染画布 -->
+  <div id="canvas-container" class="absolute inset-0 w-full h-full z-0"></div>
+
+  <!-- 顶部主导航栏 (严格复刻原图顶部) -->
+  <header class="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-6 py-3 hud-card border-b border-[#c6baa4] shadow-sm">
+    <!-- 左侧：标志与项目标题 -->
+    <div class="flex items-center gap-3">
+      <!-- 红色复古邮车图标 -->
+      <div class="w-10 h-10 rounded-lg bg-[#b83f2a] flex items-center justify-center text-[#fcf9f2] font-black shadow-inner">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 17l9.2-9.2M17 17V7H7"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-xl font-black tracking-wider text-[#a83b28] uppercase font-display leading-tight">TRAMLINE</h1>
+        <p class="text-[11px] font-bold tracking-widest text-[#7a6f63] uppercase">STORIES / PORT MORROW (电车街故事 · 莫罗港)</p>
+      </div>
+    </div>
+
+    <!-- 中间：状态与功能药丸标签组 -->
+    <div class="flex items-center gap-2 bg-[#dcd3bf] p-1 rounded-full border border-[#c5b9a2]">
+      <!-- 自由漫游 -->
+      <button id="btn-free-roam" class="px-4 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 bg-[#f6f1e6] text-[#b83f2a] shadow-sm">
+        <span class="w-2 h-2 rounded-full bg-[#b83f2a] animate-pulse"></span>
+        <span>FREE ROAM (自由漫游)</span>
+      </button>
+
+      <!-- 探索差事 -->
+      <button id="btn-explore" class="px-4 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 text-[#5c5348] hover:bg-[#eae2cf]">
+        <svg class="w-3.5 h-3.5 text-[#b83f2a]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+        </svg>
+        <span>EXPLORE (差事清单)</span>
+        <span id="errand-badge" class="w-4 h-4 rounded-full bg-[#b83f2a] text-[#ffffff] text-[10px] flex items-center justify-center font-bold">3</span>
+      </button>
+
+      <!-- 车库改装 -->
+      <button id="btn-garage" class="px-4 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 text-[#5c5348] hover:bg-[#eae2cf]">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C1.4 11.2 1 12 1 13v3c0 .6.4 1 1 1h2"/>
+          <circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
+        </svg>
+        <span>GARAGE (车库改装)</span>
+      </button>
+    </div>
+
+    <!-- 右侧：现金余额与玩家徽章 -->
+    <div class="flex items-center gap-4">
+      <div class="text-right">
+        <div class="text-[10px] tracking-widest font-bold text-[#84786a] uppercase">CASH BALANCE (现金余额)</div>
+        <div id="cash-display" class="text-2xl font-black text-[#1e2f42] font-mono-num tracking-tight">$24,850</div>
+      </div>
+      <!-- 玩家复古徽章 -->
+      <div class="w-10 h-10 rounded-full bg-[#9b3a28] border-2 border-[#e6c98a] flex items-center justify-center text-[#faecd1] font-bold text-sm shadow-md">
+        AW
+      </div>
+    </div>
+  </header>
+
+  <!-- 左下角 HUD (街区信息、小地图、耐久与氮气) -->
+  <div class="absolute bottom-16 left-6 z-20 flex flex-col gap-2.5 w-[280px]">
+    <!-- 地点卡片 -->
+    <div class="hud-card px-4 py-2 rounded-lg flex items-center justify-between border border-[#c6baa4]">
+      <div class="flex items-center gap-2">
+        <div class="w-5 h-5 rounded-full bg-[#203348] text-[#f7f3ea] flex items-center justify-center">
+          <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+          </svg>
+        </div>
+        <div>
+          <div id="zone-name" class="font-extrabold text-xs tracking-wider text-[#22313f] uppercase">CLOCKMARKET (钟楼集市)</div>
+          <div id="street-name" class="text-[10px] text-[#7a6f63]">Tramline Avenue (电车大道)</div>
+        </div>
+      </div>
+      <div id="time-display" class="text-[11px] font-bold text-[#914234] font-mono-num">PM 04:15</div>
+    </div>
+
+    <!-- 雷达小地图 -->
+    <div class="relative w-[280px] h-[190px] rounded-lg hud-card border border-[#c6baa4] overflow-hidden p-1 shadow-inner">
+      <canvas id="minimap-canvas" width="272" height="182" class="w-full h-full rounded bg-[#e8dfc8]"></canvas>
+      <!-- 小地图覆盖标记与快捷键提示 -->
+      <div class="absolute top-2 left-2 text-[10px] font-black text-[#6a5e50] bg-[#e1d5bc] px-1.5 py-0.5 rounded border border-[#c4b79e]">N</div>
+      <button id="btn-open-map" title="展开全景大地图" class="absolute bottom-2 right-2 text-[10px] font-black text-[#ffffff] bg-[#293d52] px-2 py-0.5 rounded shadow hover:bg-[#395370] transition">
+        M (地图)
+      </button>
+    </div>
+
+    <!-- 车辆耐久度与氮气值状态条 -->
+    <div class="hud-card px-3 py-2 rounded-lg flex flex-col gap-1.5 border border-[#c6baa4]">
+      <!-- 耐久 HEALTH -->
+      <div class="flex items-center justify-between text-[11px] font-bold">
+        <span class="flex items-center gap-1 text-[#b53c29]">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          <span id="health-value">100</span> HEALTH (耐久)
+        </span>
+        <span class="flex items-center gap-1 text-[#3b7596]">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+          <span id="nitro-value">100</span> NITRO (加速)
+        </span>
+      </div>
+
+      <!-- 进度条组合 -->
+      <div class="w-full h-2 rounded-full bg-[#d6cab2] overflow-hidden flex">
+        <div id="health-bar" class="h-full bg-gradient-to-r from-[#d94a36] to-[#eb7454] transition-all duration-150" style="width: 50%;"></div>
+        <div id="nitro-bar" class="h-full bg-gradient-to-r from-[#3e8ea8] to-[#60b5d1] transition-all duration-75" style="width: 50%;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右下角 HUD (速度仪表盘与原创电台) -->
+  <div class="absolute bottom-16 right-6 z-20 flex flex-col gap-2.5 w-[280px]">
+    <!-- 仪表盘 (深蓝质感卡片，高度还原截图) -->
+    <div class="hud-card-dark p-4 rounded-xl text-[#f3ede1] flex flex-col gap-2 border border-[#3b4f66]">
+      <div class="flex items-center justify-between text-[10px] tracking-wider text-[#9bb3ca] uppercase font-bold border-b border-[#2d4056] pb-1.5">
+        <span>KESTREL N4 COURIER (雨燕 N4 快递车)</span>
+        <svg class="w-4 h-4 text-[#e06c4b]" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+        </svg>
+      </div>
+
+      <div class="flex items-baseline justify-between pt-1">
+        <!-- 挡位 N / D / R -->
+        <div id="gear-indicator" class="text-xl font-black text-[#e87754] font-display">N</div>
+
+        <!-- 巨大空心数字速度表 -->
+        <div class="flex items-baseline gap-1.5">
+          <span id="speed-display" class="text-5xl font-light tracking-tighter text-[#ffffff] font-mono-num leading-none">000</span>
+          <div class="text-right">
+            <div class="text-[11px] font-bold text-[#b5cbdf]">KM/H</div>
+            <div class="text-[9px] text-[#718da6]">AUTO (自动)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 底部能量指示与 SHIFT 提示 -->
+      <div class="flex items-center justify-between pt-1 border-t border-[#2d4056] text-[10px] text-[#8ea8c2]">
+        <div class="flex items-center gap-1.5">
+          <span class="text-[#e87754]">⚡</span>
+          <span>SHIFT 极速冲刺</span>
+        </div>
+        <div id="rpm-dots" class="flex gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#e87754]"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-[#e87754]"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-[#526f8c]"></span>
+          <span class="w-1.5 h-1.5 rounded-full bg-[#526f8c]"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 原创广播电台组件 -->
+    <div id="radio-widget" class="hud-card px-4 py-2.5 rounded-xl flex items-center justify-between border border-[#c6baa4] cursor-pointer hover:bg-[#ede5d3] transition">
+      <div class="flex items-center gap-3">
+        <!-- 收音机图标 -->
+        <div class="w-8 h-8 rounded-lg bg-[#ded3bc] flex items-center justify-center text-[#3c2f25] border border-[#b8ab94]">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3l-6 4"/><circle cx="17" cy="14" r="2"/>
+          </svg>
+        </div>
+        <div>
+          <div class="text-[9px] font-bold text-[#8a7f72] tracking-wider uppercase">NOW PLAYING (正在播放)</div>
+          <div id="station-name" class="text-xs font-bold text-[#233345] truncate max-w-[150px]">Harbor Frequencies</div>
+        </div>
+      </div>
+
+      <!-- 动态跳动声波 -->
+      <div class="flex items-end gap-1 h-5">
+        <span class="w-1 bg-[#d94b38] rounded-full wave-bar-1"></span>
+        <span class="w-1 bg-[#d94b38] rounded-full wave-bar-2"></span>
+        <span class="w-1 bg-[#d94b38] rounded-full wave-bar-3"></span>
+        <span class="w-1 bg-[#d94b38] rounded-full wave-bar-4"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部快捷控制栏 (严格对齐截图底部操作说明) -->
+  <footer class="absolute bottom-0 left-0 right-0 z-20 h-10 px-8 hud-card border-t border-[#c6baa4] flex items-center justify-between text-xs font-bold text-[#554a3e]">
+    <!-- 左侧驾驶操作 -->
+    <div class="flex items-center gap-6">
+      <div class="flex items-center gap-1.5">
+        <span class="bg-[#dcd1bc] px-1.5 py-0.5 rounded text-[11px] font-mono border border-[#baa990]">W A S D</span>
+        <span class="text-[11px]">或 方向键 驾驶/移动</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="bg-[#dcd1bc] px-1.5 py-0.5 rounded text-[11px] font-mono border border-[#baa990]">SPACE</span>
+        <span class="text-[11px]">手刹/漂移</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="bg-[#dcd1bc] px-1.5 py-0.5 rounded text-[11px] font-mono border border-[#baa990]">SHIFT</span>
+        <span class="text-[11px]">氮气加速</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="bg-[#dcd1bc] px-1.5 py-0.5 rounded text-[11px] font-mono border border-[#baa990]">E</span>
+        <span class="text-[11px]">上下车/交互</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <span class="bg-[#dcd1bc] px-1.5 py-0.5 rounded text-[11px] font-mono border border-[#baa990]">C</span>
+        <span class="text-[11px]">切换镜头视角</span>
+      </div>
+    </div>
+
+    <!-- 右侧功能控制 -->
+    <div class="flex items-center gap-5">
+      <!-- 静音/音效切换 -->
+      <button id="btn-toggle-audio" class="flex items-center gap-1 hover:text-[#b83f2a] transition">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+        </svg>
+        <span class="text-[11px]">广播/音效</span>
+      </button>
+
+      <!-- 地图 -->
+      <button id="btn-footer-map" class="flex items-center gap-1 hover:text-[#b83f2a] transition">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+        </svg>
+        <span class="text-[11px]">M 全景大地图</span>
+      </button>
+
+      <!-- 暂停/帮助 -->
+      <button id="btn-help" class="flex items-center gap-1 hover:text-[#b83f2a] transition">
+        <span class="bg-[#dcd1bc] px-1.5 py-0.5 rounded text-[11px] font-mono border border-[#baa990]">ESC</span>
+        <span class="text-[11px]">帮助</span>
+      </button>
+    </div>
+  </footer>
+
+  <!-- 浮动互动提示 (靠近可上下车/拾取邮包时显示) -->
+  <div id="interaction-prompt" class="hidden absolute top-2/3 left-1/2 -translate-x-1/2 z-30 hud-card px-5 py-2.5 rounded-full border-2 border-[#b83f2a] shadow-xl flex items-center gap-2 animate-bounce">
+    <span class="bg-[#b83f2a] text-[#ffffff] px-2 py-0.5 rounded font-black text-xs font-mono">E</span>
+    <span id="prompt-text" class="text-xs font-extrabold text-[#2a1e17]">按 E 键进入驾驶位</span>
+  </div>
+
+  <!-- 顶部通知吐司 (Toast) -->
+  <div id="toast-banner" class="opacity-0 pointer-events-none transition-all duration-300 absolute top-20 left-1/2 -translate-x-1/2 z-40 hud-card px-6 py-3 rounded-xl border border-[#c6baa4] shadow-2xl flex items-center gap-3">
+    <div id="toast-icon" class="text-xl">📦</div>
+    <div id="toast-text" class="text-xs font-extrabold text-[#223140]">通知消息</div>
+  </div>
+
+  <!-- 模态框 1：探索差事与失踪邮包 (EXPLORE MODAL) -->
+  <div id="modal-explore" class="hidden absolute inset-0 z-40 bg-[#1f2832]/60 backdrop-blur-sm flex items-center justify-center p-6">
+    <div class="hud-card w-full max-w-2xl rounded-2xl border border-[#baa990] p-6 flex flex-col gap-5 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-[#c8baa0] pb-3">
+        <div>
+          <h2 class="text-xl font-black text-[#a63926] font-display">PORT MORROW ERRANDS (莫罗港邻里差事)</h2>
+          <p class="text-xs text-[#75695b]">驾驶你的雨燕 N4 快递车，协助小镇邻里，追寻失落的邮包。</p>
+        </div>
+        <button id="btn-close-explore" class="w-8 h-8 rounded-full bg-[#ded2bc] flex items-center justify-center text-sm font-bold hover:bg-[#cfc0a5]">✕</button>
+      </div>
+
+      <!-- 3 个差事列表 -->
+      <div class="flex flex-col gap-3">
+        <div id="errands-list" class="flex flex-col gap-3">
+          <!-- 动态渲染 3 个差事卡片 -->
+        </div>
+      </div>
+
+      <!-- 失踪邮包搜集进度 -->
+      <div class="p-4 rounded-xl bg-[#e3d7be] border border-[#c0b196] flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="text-2xl">📮</div>
+          <div>
+            <div class="text-xs font-bold text-[#2a3c4f]">失踪海港邮包搜集进度</div>
+            <div class="text-[11px] text-[#6d6052]">线索：散落在码头防波堤、电车调车轨道木椅旁、以及北岬山崖露台。</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="parcels-count" class="text-lg font-black text-[#a63926] font-mono">0 / 3</span>
+          <span class="text-xs font-bold text-[#5c4e40]">已找回</span>
+        </div>
+      </div>
+
+      <div class="text-right">
+        <button id="btn-close-explore-bottom" class="px-5 py-2 rounded-lg bg-[#31485e] text-[#f7f2e8] text-xs font-bold hover:bg-[#435e78] transition">
+          返回驾驶
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模态框 2：莫罗修车库与改装展厅 (GARAGE MODAL) -->
+  <div id="modal-garage" class="hidden absolute inset-0 z-40 bg-[#1b2633]/65 backdrop-blur-sm flex items-center justify-center p-6">
+    <div class="hud-card w-full max-w-2xl rounded-2xl border border-[#baa990] p-6 flex flex-col gap-5 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-[#c8baa0] pb-3">
+        <div>
+          <h2 class="text-xl font-black text-[#a63926] font-display">MORROW GARAGE (莫罗修车库与改装工坊)</h2>
+          <p class="text-xs text-[#75695b]">维修受损车况，定制经典涂装，升级引擎动力与氮气储罐。</p>
+        </div>
+        <button id="btn-close-garage" class="w-8 h-8 rounded-full bg-[#ded2bc] flex items-center justify-center text-sm font-bold hover:bg-[#cfc0a5]">✕</button>
+      </div>
+
+      <!-- 车况与维修 -->
+      <div class="flex items-center justify-between p-4 rounded-xl bg-[#e3d7be] border border-[#c0b196]">
+        <div>
+          <div class="text-xs font-bold text-[#273849]">当前车辆耐久状况</div>
+          <div class="text-[11px] text-[#6d6052]">车况不佳会导致引擎冒烟并严重限制最高车速。</div>
+        </div>
+        <button id="btn-repair-car" class="px-4 py-2 rounded-lg bg-[#b83f2a] text-[#ffffff] text-xs font-black hover:bg-[#ce4932] transition shadow">
+          一键修复 ($200)
+        </button>
+      </div>
+
+      <!-- 车漆喷涂配色方案 -->
+      <div class="flex flex-col gap-2">
+        <div class="text-xs font-extrabold text-[#384857]">定制经典车身喷漆 (PAINT COLOR)</div>
+        <div class="grid grid-cols-6 gap-3">
+          <button data-color="#7aa2b8" class="paint-opt p-2 rounded-xl border-2 border-[#b83f2a] flex flex-col items-center gap-1 bg-[#f4eee4]">
+            <span class="w-8 h-8 rounded-full bg-[#7aa2b8] shadow-inner"></span>
+            <span class="text-[10px] font-bold text-[#354350]">海港天青</span>
+          </button>
+          <button data-color="#eb7644" class="paint-opt p-2 rounded-xl border-2 border-transparent flex flex-col items-center gap-1 bg-[#f4eee4] hover:border-[#b83f2a]">
+            <span class="w-8 h-8 rounded-full bg-[#eb7644] shadow-inner"></span>
+            <span class="text-[10px] font-bold text-[#354350]">落日柑橘</span>
+          </button>
+          <button data-color="#73a88b" class="paint-opt p-2 rounded-xl border-2 border-transparent flex flex-col items-center gap-1 bg-[#f4eee4] hover:border-[#b83f2a]">
+            <span class="w-8 h-8 rounded-full bg-[#73a88b] shadow-inner"></span>
+            <span class="text-[10px] font-bold text-[#354350]">薄荷牧草</span>
+          </button>
+          <button data-color="#2d4a66" class="paint-opt p-2 rounded-xl border-2 border-transparent flex flex-col items-center gap-1 bg-[#f4eee4] hover:border-[#b83f2a]">
+            <span class="w-8 h-8 rounded-full bg-[#2d4a66] shadow-inner"></span>
+            <span class="text-[10px] font-bold text-[#354350]">午夜藏青</span>
+          </button>
+          <button data-color="#eee6d3" class="paint-opt p-2 rounded-xl border-2 border-transparent flex flex-col items-center gap-1 bg-[#f4eee4] hover:border-[#b83f2a]">
+            <span class="w-8 h-8 rounded-full bg-[#eee6d3] shadow-inner border border-[#c4b59b]"></span>
+            <span class="text-[10px] font-bold text-[#354350]">象牙白沙</span>
+          </button>
+          <button data-color="#e0a338" class="paint-opt p-2 rounded-xl border-2 border-transparent flex flex-col items-center gap-1 bg-[#f4eee4] hover:border-[#b83f2a]">
+            <span class="w-8 h-8 rounded-full bg-[#e0a338] shadow-inner"></span>
+            <span class="text-[10px] font-bold text-[#354350]">邮政金辉</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 性能升级项目 -->
+      <div class="grid grid-cols-3 gap-3">
+        <!-- 引擎 -->
+        <div class="p-3 rounded-xl bg-[#e6dbbf] border border-[#c5b597] flex flex-col gap-2">
+          <div class="text-xs font-bold text-[#2d4054]">发动机马力 (LV.<span id="lvl-engine">1</span>)</div>
+          <div class="text-[10px] text-[#716353]">提高极速与爬坡加速度。</div>
+          <button id="btn-upgrade-engine" class="mt-auto py-1.5 rounded bg-[#31485e] text-[#f4eee4] text-xs font-bold hover:bg-[#435e78]">
+            升级 ($1,500)
+          </button>
+        </div>
+        <!-- 操控与悬挂 -->
+        <div class="p-3 rounded-xl bg-[#e6dbbf] border border-[#c5b597] flex flex-col gap-2">
+          <div class="text-xs font-bold text-[#2d4054]">悬挂调校 (LV.<span id="lvl-handling">1</span>)</div>
+          <div class="text-[10px] text-[#716353]">增强漂移回正与转向抓地力。</div>
+          <button id="btn-upgrade-handling" class="mt-auto py-1.5 rounded bg-[#31485e] text-[#f4eee4] text-xs font-bold hover:bg-[#435e78]">
+            升级 ($1,200)
+          </button>
+        </div>
+        <!-- 氮气系统 -->
+        <div class="p-3 rounded-xl bg-[#e6dbbf] border border-[#c5b597] flex flex-col gap-2">
+          <div class="text-xs font-bold text-[#2d4054]">氮气罐系统 (LV.<span id="lvl-nitro">1</span>)</div>
+          <div class="text-[10px] text-[#716353]">提升氮气充能速度与储量。</div>
+          <button id="btn-upgrade-nitro" class="mt-auto py-1.5 rounded bg-[#31485e] text-[#f4eee4] text-xs font-bold hover:bg-[#435e78]">
+            升级 ($1,000)
+          </button>
+        </div>
+      </div>
+
+      <div class="text-right">
+        <button id="btn-close-garage-bottom" class="px-5 py-2 rounded-lg bg-[#31485e] text-[#f7f2e8] text-xs font-bold hover:bg-[#435e78] transition">
+          完成改装并出库
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模态框 3：莫罗港全景大地图 (FULL MAP MODAL) -->
+  <div id="modal-map" class="hidden absolute inset-0 z-40 bg-[#1a2531]/75 backdrop-blur-md flex items-center justify-center p-6">
+    <div class="hud-card w-full max-w-4xl h-[85vh] rounded-2xl border border-[#baa990] p-6 flex flex-col gap-4 shadow-2xl relative">
+      <div class="flex items-center justify-between border-b border-[#c8baa0] pb-2">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-[#b83f2a] flex items-center justify-center text-[#ffffff]">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-xl font-black text-[#a63926] font-display">PORT MORROW NAVIGATION (莫罗港海港全图)</h2>
+            <p class="text-xs text-[#75695b]">旧电车线横贯中央大道，西临海港栈道，北抵岬角灯塔，东接调车所与修车库。</p>
+          </div>
+        </div>
+        <button id="btn-close-map" class="w-8 h-8 rounded-full bg-[#ded2bc] flex items-center justify-center text-sm font-bold hover:bg-[#cfc0a5]">✕</button>
+      </div>
+
+      <!-- 大地图画布 -->
+      <div class="relative flex-1 rounded-xl bg-[#e3d8be] border-2 border-[#b5a589] overflow-hidden">
+        <canvas id="bigmap-canvas" class="w-full h-full"></canvas>
+      </div>
+
+      <!-- 地图图例 (Legend) -->
+      <div class="flex items-center justify-between text-xs font-bold text-[#554a3e] px-2">
+        <div class="flex items-center gap-6">
+          <div class="flex items-center gap-1.5">
+            <span class="w-3.5 h-3.5 bg-[#b83f2a] rounded-sm transform rotate-45 inline-block"></span>
+            <span>当前玩家/车辆</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-3.5 h-3.5 bg-[#4287f5] rounded-full inline-block"></span>
+            <span>差事目标指引</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-3.5 h-3.5 bg-[#f5a142] rounded-sm inline-block"></span>
+            <span>失踪邮包线索</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-3.5 h-3.5 bg-[#4a934a] rounded-sm inline-block"></span>
+            <span>莫罗修车库</span>
+          </div>
+        </div>
+        <div class="text-[11px] text-[#7a6f62]">提示：按 M 键可随时开关此地图</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模态框 4：帮助与操作指南 (HELP MODAL) -->
+  <div id="modal-help" class="hidden absolute inset-0 z-40 bg-[#1c2734]/65 backdrop-blur-sm flex items-center justify-center p-6">
+    <div class="hud-card w-full max-w-lg rounded-2xl border border-[#baa990] p-6 flex flex-col gap-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-[#c8baa0] pb-2">
+        <h2 class="text-lg font-black text-[#a63926] font-display">驾驶指南与漫游操作</h2>
+        <button id="btn-close-help" class="w-7 h-7 rounded-full bg-[#ded2bc] flex items-center justify-center text-xs font-bold hover:bg-[#cfc0a5]">✕</button>
+      </div>
+
+      <div class="text-xs text-[#524538] leading-relaxed flex flex-col gap-2.5">
+        <p>欢迎来到 <strong class="text-[#a63926]">Port Morrow（莫罗港）</strong>！你正开着心爱的「雨燕 N4 快递车」穿梭在海风与旧电车线交织的小城午后。</p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li><strong>WASD / 方向键</strong>：油门前进、刹车制动与倒车、平顺转向。</li>
+          <li><strong>空格 (SPACE)</strong>：手刹制动与侧身滑行漂移。</li>
+          <li><strong>Shift</strong>：注入强劲氮气冲刺，急速提升马力。</li>
+          <li><strong>E 键</strong>：随时上下车，化身快递员下车徒步探索海堤与窄巷；靠近目标时互动。</li>
+          <li><strong>C 键</strong>：切换 3 种镜头视角（后视跟踪、驾驶舱、全景观光高机位）。</li>
+          <li><strong>M 键</strong>：展开水彩航海风全城大地图。</li>
+          <li><strong>原创广播</strong>：点击右下角收音机组件可切换 3 大原创调频频道！</li>
+        </ul>
+      </div>
+
+      <div class="text-right pt-2 border-t border-[#c8baa0]">
+        <button id="btn-confirm-help" class="px-5 py-2 rounded-lg bg-[#b83f2a] text-[#ffffff] text-xs font-bold hover:bg-[#ce4932] transition">
+          我知道了，出发！
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

@@ -24,7 +24,9 @@
     "dev:solar": "cd 太阳系概览 && vite",
     "build:solar": "cd 太阳系概览 && vite build",
     "dev:billiards": "cd 3D台球 && vite",
-    "build:billiards": "cd 3D台球 && vite build"
+    "build:billiards": "cd 3D台球 && vite build",
+    "dev:tramline": "cd 电车街故事 && vite",
+    "build:tramline": "cd 电车街故事 && vite build"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.21.0",
